@@ -49,8 +49,8 @@ def test_schema_is_itself_valid(schema):
     validator_for(schema).check_schema(schema)
 
 
-def test_top_level_requires_project_and_tickets(schema):
-    assert set(schema["required"]) == {"project", "tickets"}
+def test_top_level_requires_company_project_and_tickets(schema):
+    assert set(schema["required"]) == {"company", "project", "tickets"}
 
 
 def test_ticket_has_exactly_core_plus_optional_fields(ticket_props):
@@ -119,6 +119,6 @@ def valid_ticket():
 ])
 def test_malformed_tickets_are_rejected(schema, valid_ticket, mutate):
     mutate(valid_ticket)
-    doc = {"project": "Demo Project", "tickets": [valid_ticket]}
+    doc = {"company": "Demo Company", "project": "Demo Project", "tickets": [valid_ticket]}
     with pytest.raises(Exception):
         Draft202012Validator(schema).validate(doc)

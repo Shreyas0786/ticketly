@@ -16,6 +16,7 @@ Early build. Foundation is in place:
 
 - **IDs:** epics are `EPIC-<PREFIX>` (e.g. `EPIC-REL`); tasks inherit the prefix as `<PREFIX>-NNN` (e.g. `REL-002`). The prefix groups a theme; `parent` links a task to its epic.
 - **Effort:** Fibonacci story points (1, 2, 3, 5, 8, 13). Epics are `0` — they are sized by their children.
+- **Company & project are user-supplied.** Every backlog records the `company` and `project` it is for. Ticketly asks for these and never invents them.
 - **Guardrail:** Ticketly never invents requirements. If something is unspecified, the ticket is flagged `needs_clarification` instead of hallucinating scope.
 
 ## Roadmap
