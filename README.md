@@ -40,7 +40,9 @@ Render a backlog to review-ready output any time:
 python3 -m ticketly.render backlogs/<project>.json --format both --out-dir build/
 ```
 
-This validates the backlog against the schema **and runs the integrity checks** first, then writes `build/<project>.md` (epic-grouped table + Build order) and `build/<project>.csv` (universal tracker import). A backlog with any integrity error is refused. To check a backlog without rendering:
+This validates the backlog against the schema **and runs the integrity checks** first, then writes `build/<project>.md` (epic-grouped table + Build order) and `build/<project>.csv` (universal tracker import). A backlog with any integrity error is refused.
+
+For **Notion**, add `--format notion` (or `--format all`) to also write `build/<project>.notion.csv`, laid out for Notion's CSV import (title-first, parent as `Epic`, dependencies as a multi-select). To check a backlog without rendering:
 
 ```bash
 python3 -m ticketly.validate backlogs/<project>.json
@@ -58,7 +60,7 @@ python3 -m ticketly.validate backlogs/<project>.json
 1. **Phase 1** ✅ — generator command + Markdown and CSV renderers.
 2. **Phase 2** ✅ — per-project house-style config + few-shot examples.
 3. **Phase 3** ✅ — dependency validation, build-order view, dedupe, plain-English refine loop.
-4. **Phase 4** — Notion export (CSV is already the universal path).
+4. **Phase 4** ✅ — Notion export (CSV is already the universal path).
 5. **Phase 5** — web UI for a public, open-source release.
 
 ## Tests

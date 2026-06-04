@@ -7,6 +7,7 @@ malformed backlog fails loudly instead of producing junk output.
 
 Usage:
     python -m ticketly.render BACKLOG.json --format both --out-dir build/
+    python -m ticketly.render BACKLOG.json --format notion --out-dir build/
 """
 
 from __future__ import annotations
@@ -117,6 +118,37 @@ def render_csv(data: dict[str, Any]) -> str:
     return buf.getvalue()
 
 
+# Notion-import CSV. Notion makes the FIRST column the page title, so "Name"
+# (the ticket title) leads. Dependencies are comma-separated so Notion can turn
+# the column into a multi-select; acceptance criteria are newline-separated so
+# each reads as its own line in the imported text property.
+NOTION_COLUMNS: list[tuple[str, Any]] = [
+    ("Name", lambda t: t["title"]),
+    ("ID", lambda t: t["id"]),
+    ("Type", lambda t: t["type"]),
+    ("Status", lambda t: t["status"]),
+    ("Effort", lambda t: "" if t["type"] == "Epic" else str(t["effort"])),
+    ("Epic", lambda t: t.get("parent") or ""),
+    ("Dependencies", lambda t: ", ".join(t.get("dependencies") or [])),
+    ("Needs Clarification", lambda t: "Yes" if t.get("needs_clarification") else "No"),
+    ("Description", lambda t: t.get("description") or ""),
+    ("Acceptance Criteria", lambda t: "\n".join(t.get("acceptance_criteria") or [])),
+    ("Assignee", lambda t: t.get("assignee") or ""),
+    ("Due Date", lambda t: t.get("due_date") or ""),
+    ("Priority", lambda t: t.get("priority") or ""),
+]
+
+
+def render_notion_csv(data: dict[str, Any]) -> str:
+    """Render the backlog as a Notion-import CSV (one row per ticket)."""
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    writer.writerow([header for header, _ in NOTION_COLUMNS])
+    for t in data["tickets"]:
+        writer.writerow([fn(t) for _, fn in NOTION_COLUMNS])
+    return buf.getvalue()
+
+
 def _deps(ticket: dict) -> str:
     return ", ".join(ticket.get("dependencies") or []) or "—"
 
@@ -204,9 +236,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("backlog", help="Path to a backlog JSON file.")
     parser.add_argument(
         "--format",
-        choices=["md", "csv", "both"],
+        choices=["md", "csv", "notion", "both", "all"],
         default="both",
-        help="Output format(s). Default: both.",
+        help="Output format(s): md, csv, notion, both (md+csv), or all. Default: both.",
     )
     parser.add_argument(
         "--out-dir",
@@ -229,11 +261,14 @@ def main(argv: list[str] | None = None) -> int:
     for w in integrity.warnings(integrity.check_integrity(data)):
         print(w, file=sys.stderr)
 
+    # keys double as filename suffixes: <project>.md / .csv / .notion.csv
     outputs: dict[str, str] = {}
-    if args.format in ("md", "both"):
+    if args.format in ("md", "both", "all"):
         outputs["md"] = render_markdown(data)
-    if args.format in ("csv", "both"):
+    if args.format in ("csv", "both", "all"):
         outputs["csv"] = render_csv(data)
+    if args.format in ("notion", "all"):
+        outputs["notion.csv"] = render_notion_csv(data)
 
     if args.out_dir is None:
         for i, text in enumerate(outputs.values()):
