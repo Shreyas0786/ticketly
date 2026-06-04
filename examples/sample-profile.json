@@ -1,0 +1,27 @@
+{
+  "company": "Demo Company",
+  "project": "Demo Project",
+  "summary": "A web app where users submit documents and get structured data back.",
+  "stack": {
+    "frontend": ["Next.js", "TypeScript", "Tailwind"],
+    "backend": ["FastAPI", "Python"],
+    "database": ["Postgres"],
+    "infra": ["Docker", "GitHub Actions"],
+    "other": ["Stripe"]
+  },
+  "architecture": {
+    "notes": "A Next.js frontend talks to a FastAPI backend over REST. The backend persists to Postgres and runs document processing inline for now. Billing is handled by Stripe.",
+    "components": [
+      { "name": "Web app", "description": "Next.js frontend users interact with." },
+      { "name": "API service", "description": "FastAPI backend exposing REST endpoints and business logic." },
+      { "name": "Database", "description": "Postgres storing users, documents, and extracted data." }
+    ]
+  },
+  "prefixes": [
+    { "prefix": "WEB", "domain": "Frontend web app" },
+    { "prefix": "API", "domain": "Backend API" },
+    { "prefix": "DB", "domain": "Database & migrations" },
+    { "prefix": "AUTH", "domain": "Authentication & accounts" },
+    { "prefix": "INFRA", "domain": "Infrastructure & CI/CD" }
+  ]
+}

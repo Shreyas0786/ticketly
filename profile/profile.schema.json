@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ticketly.dev/schema/profile.schema.json",
+  "title": "Ticketly Project Profile",
+  "description": "Per-project context Ticketly gathers before generating a backlog: the company, the project, the user-supplied tech stack and architecture, and the agreed ticket-ID prefix scheme. Everything here is supplied or confirmed by the user; Ticketly never invents a stack or scope.",
+  "type": "object",
+  "required": ["company", "project", "stack", "architecture", "prefixes"],
+  "additionalProperties": false,
+  "properties": {
+    "company": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Company / organization this project is for. The user MUST supply this; Ticketly never invents it."
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Project name this profile belongs to, supplied by the user, e.g. 'Demo Project'."
+    },
+    "summary": {
+      "type": "string",
+      "description": "Optional one- or two-sentence description of what the project is, in the user's words."
+    },
+    "stack": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The technologies the project uses, as described by the user. Every field is optional: only record what the user actually states. Never fill a layer the user did not mention.",
+      "properties": {
+        "frontend": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "e.g. ['Next.js', 'TypeScript', 'Tailwind']. Empty or absent if the project has no frontend."
+        },
+        "backend": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "e.g. ['FastAPI', 'Python']."
+        },
+        "database": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "e.g. ['Postgres', 'Redis']."
+        },
+        "infra": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Hosting, CI/CD, containers, queues, e.g. ['Docker', 'GitHub Actions', 'Fly.io']."
+        },
+        "other": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "description": "Anything that does not fit the layers above, e.g. ['Stripe', 'Auth0']."
+        }
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["components"],
+      "description": "How the system is shaped, in the user's words. Captured from the discussion; not inferred.",
+      "properties": {
+        "notes": {
+          "type": "string",
+          "description": "Free-form description of the architecture (monolith vs services, data flow, key decisions)."
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Component / module name, e.g. 'Web app', 'API service', 'Worker'."
+              },
+              "description": {
+                "type": "string",
+                "description": "What this component does."
+              }
+            }
+          },
+          "description": "The major moving parts of the system. May be empty if the user has not broken it down yet."
+        }
+      }
+    },
+    "prefixes": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The agreed ticket-ID prefix scheme. Ticketly suggests these from the stack/architecture; the user confirms or edits before any tickets are generated. Each prefix becomes an epic theme (EPIC-<PREFIX>) and its tasks (<PREFIX>-NNN).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["prefix", "domain"],
+        "properties": {
+          "prefix": {
+            "type": "string",
+            "pattern": "^[A-Z]{2,5}$",
+            "description": "2-5 uppercase letters, e.g. 'API', 'WEB', 'DB', 'AUTH'. Matches the ticket schema's ID prefix."
+          },
+          "domain": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What this prefix groups, e.g. 'Backend API', 'Frontend web app', 'Database & migrations'."
+          }
+        }
+      }
+    }
+  }
+}

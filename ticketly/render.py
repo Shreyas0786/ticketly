@@ -1,0 +1,217 @@
+"""Render a validated Ticketly backlog to Markdown and CSV.
+
+Deterministic, no model calls. A backlog JSON (conforming to
+``schema/ticket.schema.json``) goes in; review-ready Markdown and
+tracker-importable CSV come out. Validation always runs first, so a
+malformed backlog fails loudly instead of producing junk output.
+
+Usage:
+    python -m ticketly.render BACKLOG.json --format both --out-dir build/
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import io
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+from jsonschema import Draft202012Validator
+
+ROOT = Path(__file__).resolve().parent.parent
+SCHEMA_PATH = ROOT / "schema" / "ticket.schema.json"
+
+# CSV columns, in order. One row per ticket; list fields are joined with "; ".
+CSV_COLUMNS = [
+    "id",
+    "title",
+    "type",
+    "parent",
+    "status",
+    "effort",
+    "dependencies",
+    "description",
+    "acceptance_criteria",
+    "needs_clarification",
+]
+
+_LIST_FIELDS = {"dependencies", "acceptance_criteria"}
+
+
+def load_schema() -> dict[str, Any]:
+    """Load the ticket backlog schema."""
+    return json.loads(SCHEMA_PATH.read_text())
+
+
+def load_backlog(path: str | Path) -> dict[str, Any]:
+    """Load and validate a backlog file. Raises on schema violations."""
+    data = json.loads(Path(path).read_text())
+    validate_backlog(data)
+    return data
+
+
+def validate_backlog(data: dict[str, Any]) -> None:
+    """Validate a backlog dict against the schema. Raises ValidationError."""
+    Draft202012Validator(load_schema()).validate(data)
+
+
+def _epics(tickets: list[dict]) -> list[dict]:
+    return [t for t in tickets if t["type"] == "Epic"]
+
+
+def _tasks_for(epic_id: str, tickets: list[dict]) -> list[dict]:
+    return [t for t in tickets if t["type"] == "Task" and t.get("parent") == epic_id]
+
+
+def _orphan_tasks(tickets: list[dict]) -> list[dict]:
+    epic_ids = {t["id"] for t in tickets if t["type"] == "Epic"}
+    return [
+        t
+        for t in tickets
+        if t["type"] == "Task" and t.get("parent") not in epic_ids
+    ]
+
+
+def _cell(value: Any, field: str) -> str:
+    """Format a ticket field for a CSV cell."""
+    if field in _LIST_FIELDS:
+        return "; ".join(value or [])
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def render_csv(data: dict[str, Any]) -> str:
+    """Render the backlog as CSV (one row per ticket)."""
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    writer.writerow(CSV_COLUMNS)
+    for t in data["tickets"]:
+        writer.writerow([_cell(t.get(col), col) for col in CSV_COLUMNS])
+    return buf.getvalue()
+
+
+def _deps(ticket: dict) -> str:
+    return ", ".join(ticket.get("dependencies") or []) or "—"
+
+
+def _md_task_row(t: dict) -> str:
+    flag = " ⚠️" if t.get("needs_clarification") else ""
+    return (
+        f"| {t['id']} | {t['title']}{flag} | {t['effort']} "
+        f"| {_deps(t)} | {t['status']} |"
+    )
+
+
+def _md_epic_section(epic: dict, tickets: list[dict]) -> list[str]:
+    lines = [f"## {epic['id']} — {epic['title']}", "", epic["description"], ""]
+    tasks = _tasks_for(epic["id"], tickets)
+    if not tasks:
+        lines += ["_No child tickets yet._", ""]
+        return lines
+    lines += [
+        "| ID | Title | Effort | Dependencies | Status |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    lines += [_md_task_row(t) for t in tasks]
+    lines.append("")
+    for t in tasks:
+        if t.get("acceptance_criteria"):
+            lines.append(f"**{t['id']} acceptance criteria**")
+            lines += [f"- {c}" for c in t["acceptance_criteria"]]
+            lines.append("")
+    return lines
+
+
+def _count(n: int, noun: str) -> str:
+    return f"{n} {noun}" if n == 1 else f"{n} {noun}s"
+
+
+def render_markdown(data: dict[str, Any]) -> str:
+    """Render the backlog as a review-ready Markdown document."""
+    tickets = data["tickets"]
+    n_tasks = sum(1 for t in tickets if t["type"] == "Task")
+    total_points = sum(t["effort"] for t in tickets if t["type"] == "Task")
+    lines = [
+        f"# {data['company']} — {data['project']} backlog",
+        "",
+        f"{_count(len(_epics(tickets)), 'epic')} · "
+        f"{_count(n_tasks, 'ticket')} · "
+        f"{_count(total_points, 'point')}",
+        "",
+    ]
+    for epic in _epics(tickets):
+        lines += _md_epic_section(epic, tickets)
+
+    orphans = _orphan_tasks(tickets)
+    if orphans:
+        lines += ["## Unassigned tickets", ""]
+        lines += [
+            "| ID | Title | Effort | Dependencies | Status |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+        lines += [_md_task_row(t) for t in orphans]
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="ticketly.render",
+        description="Validate a Ticketly backlog and render it to Markdown and/or CSV.",
+    )
+    parser.add_argument("backlog", help="Path to a backlog JSON file.")
+    parser.add_argument(
+        "--format",
+        choices=["md", "csv", "both"],
+        default="both",
+        help="Output format(s). Default: both.",
+    )
+    parser.add_argument(
+        "--out-dir",
+        default=None,
+        help="Directory to write <project>.md / <project>.csv into. "
+        "If omitted, output is printed to stdout.",
+    )
+    return parser
+
+
+def _slug(name: str) -> str:
+    return "".join(c if c.isalnum() else "-" for c in name.lower()).strip("-") or "backlog"
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    data = load_backlog(args.backlog)
+
+    outputs: dict[str, str] = {}
+    if args.format in ("md", "both"):
+        outputs["md"] = render_markdown(data)
+    if args.format in ("csv", "both"):
+        outputs["csv"] = render_csv(data)
+
+    if args.out_dir is None:
+        for i, text in enumerate(outputs.values()):
+            if i:
+                print()
+            print(text, end="")
+        return 0
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stem = _slug(data["project"])
+    for ext, text in outputs.items():
+        path = out_dir / f"{stem}.{ext}"
+        path.write_text(text)
+        print(f"wrote {path}", file=sys.stderr)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

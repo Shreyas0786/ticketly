@@ -6,11 +6,31 @@ Ticketly runs **inside Claude Code / Codex** — your team clones the repo and r
 
 ## Status
 
-Early build. Foundation is in place:
+Early build. Foundation + Phase 1 (profile, generator skill, renderers) are in place:
 
 - `schema/ticket.schema.json` — the single source of truth for every ticket. Lean **9 core fields** (id, title, type, parent, status, effort, dependencies, description, acceptance_criteria, plus a `needs_clarification` guardrail) and **3 optional fields** (assignee, due_date, priority) that stay hidden until a growing team needs them.
-- `examples/sample-release-backlog.json` — a worked example backlog that validates against the schema.
-- `tests/` — structural tests guarding the schema.
+- `profile/profile.schema.json` — the per-project **profile**: the company, project, user-supplied tech stack and architecture, and the agreed ticket-ID prefix scheme. Gathered before any tickets are written, and reused across runs.
+- `.claude/skills/ticketly/SKILL.md` — the **`/ticketly`** skill that drives generation inside Claude Code.
+- `ticketly/render.py` — validates a backlog and renders it to **Markdown + CSV**.
+- `examples/` — a worked example backlog and profile that validate against their schemas.
+- `tests/` — structural tests guarding the schemas, the renderers, and the skill.
+
+## Using it
+
+Run **`/ticketly`** in Claude Code. It walks a project through four stages — you can stop after any of them and resume later:
+
+1. **Start** — give your company and project (Ticketly never invents these).
+2. **Discuss** — talk through the stack and architecture, free-form. No interrogation; a few focused questions at a time.
+3. **Distill** — when you're ready, it writes a `profiles/<project>.json` profile and **suggests an ID-prefix scheme** (`WEB`, `API`, `DB`, `AUTH`, …) from your stack for you to confirm or edit.
+4. **Generate** — it writes epics, breaks them into tickets with dependencies, Fibonacci effort, and acceptance criteria, then renders them.
+
+Render a backlog to review-ready output any time:
+
+```bash
+python3 -m ticketly.render backlogs/<project>.json --format both --out-dir build/
+```
+
+This validates the backlog against the schema first, then writes `build/<project>.md` (epic-grouped table) and `build/<project>.csv` (universal tracker import).
 
 ## Conventions
 
