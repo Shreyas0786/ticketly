@@ -1,0 +1,32 @@
+{
+  "effort_rubric": {
+    "1": "Trivial, well-understood change. A few hours; no real unknowns.",
+    "2": "Small, self-contained task. About a day.",
+    "3": "Moderate task with a couple of moving parts. One to two days.",
+    "5": "Substantial task spanning a few components. Around half a week.",
+    "8": "Large task with real unknowns or cross-component coordination. About a week.",
+    "13": "Very large or highly uncertain — should probably be split into smaller tickets."
+  },
+  "prefix_vocab": [
+    { "prefix": "ARC", "domain": "Architecture & core conventions" },
+    { "prefix": "INF", "domain": "Infrastructure & dev environment" },
+    { "prefix": "INT", "domain": "Integrations & external services" },
+    { "prefix": "API", "domain": "Backend API" },
+    { "prefix": "WEB", "domain": "Frontend web app" },
+    { "prefix": "DB", "domain": "Database & migrations" },
+    { "prefix": "AUTH", "domain": "Authentication & accounts" },
+    { "prefix": "OBS", "domain": "Observability & monitoring" },
+    { "prefix": "JOB", "domain": "Background jobs & queues" },
+    { "prefix": "QA", "domain": "Testing & quality" },
+    { "prefix": "REL", "domain": "Release & launch" },
+    { "prefix": "OCR", "domain": "Document extraction / OCR", "domain_specific": true }
+  ],
+  "tone": {
+    "title": "Short imperative phrase, roughly 3-8 words, naming the outcome. E.g. 'Build file upload intake endpoint', 'Freeze core status vocabulary'. No trailing punctuation.",
+    "description": "One crisp sentence stating intent — what and why. No filler, no restating the title.",
+    "acceptance_criteria": "1-4 concrete, testable, closeable conditions. Each independently checkable; phrase as the done-state, not a task. E.g. 'enforces max size with a clear error'."
+  },
+  "few_shot": {
+    "backlog": "examples/house-style-backlog.json"
+  }
+}

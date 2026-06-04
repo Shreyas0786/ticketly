@@ -1,0 +1,127 @@
+{
+  "company": "Demo Company",
+  "project": "Demo Project",
+  "tickets": [
+    {
+      "id": "EPIC-ARC",
+      "title": "Architecture and core conventions",
+      "type": "Epic",
+      "parent": null,
+      "status": "To Do",
+      "effort": 0,
+      "dependencies": [],
+      "description": "Establish the shared conventions and foundations the rest of the build depends on.",
+      "acceptance_criteria": [],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "ARC-001",
+      "title": "Freeze core status vocabulary",
+      "type": "Task",
+      "parent": "EPIC-ARC",
+      "status": "To Do",
+      "effort": 3,
+      "dependencies": [],
+      "description": "Standardize record states to a single shared enum across validation, storage, and export.",
+      "acceptance_criteria": [
+        "one status enum defined and documented",
+        "all modules updated to the shared states",
+        "a lint check rejects ad-hoc status strings"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "EPIC-INF",
+      "title": "Infrastructure and dev environment",
+      "type": "Epic",
+      "parent": null,
+      "status": "To Do",
+      "effort": 0,
+      "dependencies": [],
+      "description": "Everything needed to run, build, and deploy the system reliably.",
+      "acceptance_criteria": [],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "INF-001",
+      "title": "Create monorepo and local dev stack",
+      "type": "Task",
+      "parent": "EPIC-INF",
+      "status": "To Do",
+      "effort": 5,
+      "dependencies": [],
+      "description": "Bootstrap a modular monorepo with the API app, worker, and local datastores runnable in one command.",
+      "acceptance_criteria": [
+        "a single command starts the local stack",
+        "README setup steps verified on a clean machine",
+        "environment config validated on boot"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "EPIC-API",
+      "title": "Backend API",
+      "type": "Epic",
+      "parent": null,
+      "status": "To Do",
+      "effort": 0,
+      "dependencies": [],
+      "description": "The REST endpoints and business logic the frontend and integrations depend on.",
+      "acceptance_criteria": [],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "API-001",
+      "title": "Build file upload intake endpoint",
+      "type": "Task",
+      "parent": "EPIC-API",
+      "status": "To Do",
+      "effort": 3,
+      "dependencies": ["INF-001"],
+      "description": "Accept user file uploads, validate type and size, and persist them to object storage.",
+      "acceptance_criteria": [
+        "accepts allowed file types and rejects others",
+        "enforces a max size with a clear error",
+        "stored objects are retrievable by id"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "QA-001",
+      "title": "Seed fixture corpus and expected outcomes",
+      "type": "Task",
+      "parent": "EPIC-API",
+      "status": "To Do",
+      "effort": 2,
+      "dependencies": ["API-001"],
+      "description": "Build an initial golden dataset to validate processing end to end.",
+      "acceptance_criteria": [
+        "representative fixtures committed to the repo",
+        "expected outputs recorded alongside them",
+        "a single command runs the comparison"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    }
+  ]
+}

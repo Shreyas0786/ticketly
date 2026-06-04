@@ -17,6 +17,21 @@ profile or a ticket must come from the user. When requirements are too thin to w
 a real ticket, set `needs_clarification: true` and say what is missing — do **not**
 fill the gap with a guess.
 
+## House style — read this first
+
+Before generating, load the team's house style from `house-style/default.json`
+(a project may ship its own override at `house-style/<project>.json` — prefer it if present).
+It tells you:
+
+- **`effort_rubric`** — what each Fibonacci point means for this team. Size every Task by it
+  so "5" means the same thing every time, not a vibe.
+- **`prefix_vocab`** — the team's default ID prefixes (`ARC`, `INF`, `API`, `WEB`, …). Suggest
+  from these, filtered to the project's actual layers. Offer a `domain_specific` prefix (e.g.
+  `OCR`) only when the project clearly has that domain.
+- **`tone`** — how titles, descriptions, and acceptance criteria should read. Follow it exactly.
+- **`few_shot.backlog`** — a worked example backlog in the team's voice. **Read it before writing
+  tickets** and match its phrasing and shape. It is a style reference, not content to copy.
+
 ## The flow
 
 A project moves through four stages. The user can stop after any of them and resume later.
@@ -45,10 +60,10 @@ learned to `profiles/<project-slug>.json`, conforming to `profile/profile.schema
 
 - `stack` — only the layers the user named. Leave a layer out if they didn't mention it.
 - `architecture.components` — the major moving parts, in their words.
-- `prefixes` — **suggest** a ticket-ID prefix per domain/layer from the stack, then **show
-  the user and let them confirm or edit before continuing.** Typical: `WEB`/`FE` for the
-  frontend, `API`/`BE` for the backend, `DB` for data, `AUTH` for accounts, `INFRA` for
-  ops. Suggest only prefixes that match the project's actual layers.
+- `prefixes` — **suggest** a ticket-ID prefix per domain/layer, drawn from the house style's
+  `prefix_vocab` and filtered to the project's actual layers, then **show the user and let them
+  confirm or edit before continuing.** Add a project-specific prefix only when the user names a
+  domain the vocabulary doesn't cover.
 
 Validate before saving:
 
@@ -65,6 +80,7 @@ Using the confirmed profile + the requirements:
 2. **Break each epic into Tasks** — `<PREFIX>-NNN`, inheriting the epic's prefix.
    Each Task needs: a clear `description`, testable `acceptance_criteria` (non-empty),
    Fibonacci `effort` (1, 2, 3, 5, 8, 13), and `dependencies` (other ticket IDs, or `[]`).
+   Write every field in the house style's `tone`, and size `effort` against its `effort_rubric`.
 3. **Dependencies & build order** — wire `dependencies` so the backlog reads in a sensible
    build order. Never create a circular or dangling dependency.
 4. **Guardrail** — anything underspecified gets `needs_clarification: true`, not a guess.
@@ -91,4 +107,5 @@ re-validate, re-render. Don't aim for one-shot perfection.
 - **IDs:** epics `EPIC-<PREFIX>`; tasks `<PREFIX>-NNN`. Prefix = epic theme; children inherit it.
 - **Effort:** Fibonacci points only (1, 2, 3, 5, 8, 13). Epics are `0`, sized by their children.
 - **Schema is the source of truth.** Every backlog validates against `schema/ticket.schema.json`;
-  every profile against `profile/profile.schema.json`.
+  every profile against `profile/profile.schema.json`; the house style against
+  `house-style/house-style.schema.json`.
