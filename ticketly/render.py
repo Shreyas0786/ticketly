@@ -21,8 +21,20 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
+from ticketly import validate as integrity
+
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = ROOT / "schema" / "ticket.schema.json"
+
+
+class BacklogIntegrityError(ValueError):
+    """Raised when a backlog is schema-valid but does not hang together
+    (dangling/circular deps, orphan parents, duplicate ids, ...)."""
+
+    def __init__(self, problems: list[integrity.Problem]):
+        self.problems = problems
+        joined = "\n".join(f"  - {p}" for p in problems)
+        super().__init__(f"backlog has {len(problems)} integrity error(s):\n{joined}")
 
 # CSV columns, in order. One row per ticket; list fields are joined with "; ".
 CSV_COLUMNS = [
@@ -47,9 +59,18 @@ def load_schema() -> dict[str, Any]:
 
 
 def load_backlog(path: str | Path) -> dict[str, Any]:
-    """Load and validate a backlog file. Raises on schema violations."""
+    """Load, schema-validate, and integrity-check a backlog file.
+
+    Raises ValidationError on a schema violation and BacklogIntegrityError on a
+    structural problem (dangling/circular deps, orphan parent, duplicate id, ...).
+    Integrity warnings are returned to the caller via ``check_backlog`` instead.
+    """
     data = json.loads(Path(path).read_text())
     validate_backlog(data)
+    problems = integrity.check_integrity(data)
+    errs = integrity.errors(problems)
+    if errs:
+        raise BacklogIntegrityError(errs)
     return data
 
 
@@ -158,7 +179,21 @@ def render_markdown(data: dict[str, Any]) -> str:
         lines += [_md_task_row(t) for t in orphans]
         lines.append("")
 
+    lines += _md_build_order(tickets)
+
     return "\n".join(lines).rstrip() + "\n"
+
+
+def _md_build_order(tickets: list[dict]) -> list[str]:
+    """A 'Build order' section: Tasks topologically sorted by dependency."""
+    order = integrity.build_order(tickets)
+    if not order:  # empty backlog or a cycle (the latter is an integrity error)
+        return []
+    titles = {t["id"]: t["title"] for t in tickets}
+    lines = ["## Build order", "", "Work tickets top to bottom; each ticket's dependencies come before it.", ""]
+    lines += [f"{i}. {tid} — {titles[tid]}" for i, tid in enumerate(order, 1)]
+    lines.append("")
+    return lines
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -189,6 +224,10 @@ def _slug(name: str) -> str:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     data = load_backlog(args.backlog)
+
+    # load_backlog already aborts on integrity *errors*; surface any warnings.
+    for w in integrity.warnings(integrity.check_integrity(data)):
+        print(w, file=sys.stderr)
 
     outputs: dict[str, str] = {}
     if args.format in ("md", "both"):

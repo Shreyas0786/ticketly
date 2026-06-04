@@ -87,20 +87,46 @@ Using the confirmed profile + the requirements:
 
 Write the result to `backlogs/<project-slug>.json`, conforming to `schema/ticket.schema.json`.
 
-### 5. Render
+### 5. Check integrity & dedupe
+
+Before rendering, run the integrity checker — it catches what the schema can't:
+
+```bash
+python3 -m ticketly.validate backlogs/<slug>.json
+```
+
+It reports **errors** (duplicate IDs, dependencies pointing at missing tickets, a Task
+parented to a non-epic, an epic sized above 0, circular dependencies, a Task with no
+acceptance criteria that isn't flagged `needs_clarification`) and **warnings** (tickets
+that share a title — a likely duplicate). **Fix every error before continuing** — the
+renderer will refuse a backlog that has any. For each warning, do a real **dedupe pass**:
+decide whether the flagged tickets are genuinely the same work and, if so, merge them
+(keep one ID, union the acceptance criteria and dependencies, repoint anything that
+depended on the dropped ID). Don't merge things that merely sound alike.
+
+### 6. Render
 
 ```bash
 python3 -m ticketly.render backlogs/<slug>.json --format both --out-dir build/
 ```
 
-This validates the backlog, then writes `build/<slug>.md` (epic-grouped, review-ready) and
-`build/<slug>.csv` (universal tracker import). Show the user the Markdown.
+This re-checks integrity, then writes `build/<slug>.md` (epic-grouped, with a topologically
+sorted **Build order** section, review-ready) and `build/<slug>.csv` (universal tracker
+import). Show the user the Markdown.
 
 ## Refine
 
-After generating, the user edits in plain English — "split WEB-003", "add acceptance
-criteria to API-005", "re-estimate", "re-order by dependency". Re-emit the backlog JSON,
-re-validate, re-render. Don't aim for one-shot perfection.
+Generation is a loop, not a one-shot. After rendering, the user edits in plain English —
+"split WEB-003 into two", "add acceptance criteria to API-005", "re-estimate INF-002",
+"merge these two", "re-order by dependency", "drop the AUTH epic". For each request:
+
+1. Apply the edit to `backlogs/<slug>.json`, keeping IDs stable (a split mints new
+   sequential IDs; a merge drops one and repoints its dependents).
+2. Re-run `python3 -m ticketly.validate` and fix anything it flags.
+3. Re-render and show the updated Markdown.
+
+Don't aim for one-shot perfection — make the change the user asked for, keep the backlog
+valid, and show the result.
 
 ## Conventions (locked)
 
