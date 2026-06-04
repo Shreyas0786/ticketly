@@ -1,0 +1,8 @@
+# Ticketly dependencies. Install with: python3 -m pip install -r requirements.txt
+#
+# Runtime — needed to validate and render backlogs (ticketly/render.py):
+jsonschema>=4.20
+
+# Development — needed to run the test suite (tests/):
+pytest>=8.0
+PyYAML>=6.0

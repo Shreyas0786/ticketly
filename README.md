@@ -10,10 +10,19 @@ Early build. Foundation + Phase 1 (profile, generator skill, renderers) are in p
 
 - `schema/ticket.schema.json` — the single source of truth for every ticket. Lean **9 core fields** (id, title, type, parent, status, effort, dependencies, description, acceptance_criteria, plus a `needs_clarification` guardrail) and **3 optional fields** (assignee, due_date, priority) that stay hidden until a growing team needs them.
 - `profile/profile.schema.json` — the per-project **profile**: the company, project, user-supplied tech stack and architecture, and the agreed ticket-ID prefix scheme. Gathered before any tickets are written, and reused across runs.
+- `house-style/` — the **house style**: the effort rubric (what each Fibonacci point means), the default ID-prefix vocabulary, tone rules for titles/descriptions/acceptance criteria, and a pointer to a few-shot example backlog. Generated tickets match this voice; a project can override the default.
 - `.claude/skills/ticketly/SKILL.md` — the **`/ticketly`** skill that drives generation inside Claude Code.
 - `ticketly/render.py` — validates a backlog and renders it to **Markdown + CSV**.
 - `examples/` — a worked example backlog and profile that validate against their schemas.
 - `tests/` — structural tests guarding the schemas, the renderers, and the skill.
+
+## Setup
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+`jsonschema` is the only runtime dependency (validation + rendering); `pytest` and `PyYAML` are for the tests.
 
 ## Using it
 
@@ -41,10 +50,10 @@ This validates the backlog against the schema first, then writes `build/<project
 
 ## Roadmap
 
-1. **Phase 1** — generator command + Markdown and CSV renderers.
-2. **Phase 2** — per-project house-style config + few-shot examples.
+1. **Phase 1** ✅ — generator command + Markdown and CSV renderers.
+2. **Phase 2** ✅ — per-project house-style config + few-shot examples.
 3. **Phase 3** — dependency validation, build-order view, dedupe, plain-English refine loop.
-4. **Phase 4** — tracker exports (Notion / Linear / Jira).
+4. **Phase 4** — Notion export (CSV is already the universal path).
 5. **Phase 5** — web UI for a public, open-source release.
 
 ## Tests
