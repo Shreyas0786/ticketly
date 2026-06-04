@@ -13,4 +13,12 @@ venv/
 
 # Generated output
 out/
+build/
 *.local.*
+
+# Runtime project data written by the /ticketly skill (examples/ stays tracked)
+profiles/
+backlogs/
+
+# Internal brief — kept locally, not shipped
+ticket-generator-spec.md
