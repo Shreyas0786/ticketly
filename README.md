@@ -12,7 +12,8 @@ Early build. Foundation + Phase 1 (profile, generator skill, renderers) are in p
 - `profile/profile.schema.json` — the per-project **profile**: the company, project, user-supplied tech stack and architecture, and the agreed ticket-ID prefix scheme. Gathered before any tickets are written, and reused across runs.
 - `house-style/` — the **house style**: the effort rubric (what each Fibonacci point means), the default ID-prefix vocabulary, tone rules for titles/descriptions/acceptance criteria, and a pointer to a few-shot example backlog. Generated tickets match this voice; a project can override the default.
 - `.claude/skills/ticketly/SKILL.md` — the **`/ticketly`** skill that drives generation inside Claude Code.
-- `ticketly/render.py` — validates a backlog and renders it to **Markdown + CSV**.
+- `ticketly/render.py` — validates a backlog and renders it to **Markdown + CSV** (with a topologically sorted **Build order** section).
+- `ticketly/validate.py` — **integrity checks** beyond the schema: duplicate IDs, dangling/circular dependencies, orphan or non-epic parents, oversized epics, and missing acceptance criteria. Rendering aborts on any error.
 - `examples/` — a worked example backlog and profile that validate against their schemas.
 - `tests/` — structural tests guarding the schemas, the renderers, and the skill.
 
@@ -39,7 +40,11 @@ Render a backlog to review-ready output any time:
 python3 -m ticketly.render backlogs/<project>.json --format both --out-dir build/
 ```
 
-This validates the backlog against the schema first, then writes `build/<project>.md` (epic-grouped table) and `build/<project>.csv` (universal tracker import).
+This validates the backlog against the schema **and runs the integrity checks** first, then writes `build/<project>.md` (epic-grouped table + Build order) and `build/<project>.csv` (universal tracker import). A backlog with any integrity error is refused. To check a backlog without rendering:
+
+```bash
+python3 -m ticketly.validate backlogs/<project>.json
+```
 
 ## Conventions
 
@@ -52,7 +57,7 @@ This validates the backlog against the schema first, then writes `build/<project
 
 1. **Phase 1** ✅ — generator command + Markdown and CSV renderers.
 2. **Phase 2** ✅ — per-project house-style config + few-shot examples.
-3. **Phase 3** — dependency validation, build-order view, dedupe, plain-English refine loop.
+3. **Phase 3** ✅ — dependency validation, build-order view, dedupe, plain-English refine loop.
 4. **Phase 4** — Notion export (CSV is already the universal path).
 5. **Phase 5** — web UI for a public, open-source release.
 
