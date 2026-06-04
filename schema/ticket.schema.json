@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ticketly.dev/schema/ticket.schema.json",
+  "title": "Ticketly Backlog",
+  "description": "A generated backlog: a project plus its epics and tickets. Single source of truth for every Ticketly renderer and validator.",
+  "type": "object",
+  "required": ["project", "tickets"],
+  "additionalProperties": false,
+  "properties": {
+    "project": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Project name this backlog belongs to, e.g. 'Demo Project'."
+    },
+    "tickets": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/ticket" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^(EPIC-[A-Z]{2,5}|(?!EPIC-)[A-Z]{2,5}-[0-9]{3})$",
+      "description": "Epics: EPIC-<PREFIX> (e.g. EPIC-ARC). Tasks: <PREFIX>-NNN (e.g. ARC-001). Prefix is the epic theme; children inherit it."
+    },
+    "ticket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "type",
+        "parent",
+        "status",
+        "effort",
+        "dependencies",
+        "description",
+        "acceptance_criteria",
+        "needs_clarification"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short task name, e.g. 'Backup restore and rollback drill'."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Epic", "Task"],
+          "description": "Epic groups child tickets; Task is a unit of work."
+        },
+        "parent": {
+          "description": "For Tasks: the EPIC-<PREFIX> id this belongs to. For Epics: null.",
+          "oneOf": [
+            { "$ref": "#/$defs/id" },
+            { "type": "null" }
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["To Do", "In Progress", "Done"],
+          "default": "To Do"
+        },
+        "effort": {
+          "type": "integer",
+          "enum": [0, 1, 2, 3, 5, 8, 13],
+          "description": "Fibonacci story points. Epics use 0 (sized via their children)."
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "uniqueItems": true,
+          "description": "Ids of tickets that must be done first. Empty array if none."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Clear statement of intent / what and why."
+        },
+        "acceptance_criteria": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Testable, closeable conditions. Required (non-empty) for Tasks; may be empty for Epics."
+        },
+        "needs_clarification": {
+          "type": "boolean",
+          "default": false,
+          "description": "Guardrail: true when requirements were too thin and scope was NOT invented. Flag instead of hallucinating."
+        },
+        "assignee": {
+          "description": "Optional. Person responsible, or null/unassigned. Hidden by default for small/solo teams.",
+          "type": ["string", "null"],
+          "default": null
+        },
+        "due_date": {
+          "description": "Optional ISO date (YYYY-MM-DD) or null. Hidden by default.",
+          "oneOf": [
+            { "type": "string", "format": "date" },
+            { "type": "null" }
+          ],
+          "default": null
+        },
+        "priority": {
+          "description": "Optional. Hidden by default.",
+          "oneOf": [
+            { "type": "string", "enum": ["High", "Medium", "Low"] },
+            { "type": "null" }
+          ],
+          "default": null
+        }
+      }
+    }
+  }
+}

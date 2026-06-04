@@ -1,0 +1,96 @@
+{
+  "project": "Demo Project",
+  "tickets": [
+    {
+      "id": "EPIC-REL",
+      "title": "Release Readiness and Launch",
+      "type": "Epic",
+      "parent": null,
+      "status": "To Do",
+      "effort": 0,
+      "dependencies": [],
+      "description": "Everything required to safely take the product from staging to a stabilized production launch.",
+      "acceptance_criteria": [],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "REL-002",
+      "title": "Backup restore and rollback drill",
+      "type": "Task",
+      "parent": "EPIC-REL",
+      "status": "To Do",
+      "effort": 5,
+      "dependencies": [],
+      "description": "Validate recoverability before launch.",
+      "acceptance_criteria": [
+        "database backup and restore tested",
+        "object storage restore path documented",
+        "rollback plan written and rehearsed"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "REL-003",
+      "title": "Design partner simulation batch",
+      "type": "Task",
+      "parent": "EPIC-REL",
+      "status": "To Do",
+      "effort": 5,
+      "dependencies": ["REL-002"],
+      "description": "Process a realistic staging batch before launch.",
+      "acceptance_criteria": [
+        "30 to 50 representative records processed in staging",
+        "zero duplicate exports",
+        "full traceability from output to raw artifact"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "REL-004",
+      "title": "Production launch checklist and runbooks",
+      "type": "Task",
+      "parent": "EPIC-REL",
+      "status": "To Do",
+      "effort": 3,
+      "dependencies": ["REL-002", "REL-003"],
+      "description": "Create final launch governance artifacts.",
+      "acceptance_criteria": [
+        "operator runbook complete",
+        "incident runbook complete",
+        "launch checklist signed off"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    },
+    {
+      "id": "REL-005",
+      "title": "Production launch and five day stabilization freeze",
+      "type": "Task",
+      "parent": "EPIC-REL",
+      "status": "To Do",
+      "effort": 8,
+      "dependencies": ["REL-004"],
+      "description": "Deploy production and monitor the first live records.",
+      "acceptance_criteria": [
+        "first production records processed successfully",
+        "no duplicate downstream writes",
+        "feature freeze held for five business days"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "due_date": null,
+      "priority": null
+    }
+  ]
+}
