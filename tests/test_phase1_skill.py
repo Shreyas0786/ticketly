@@ -38,9 +38,10 @@ def test_frontmatter_has_name_and_description(frontmatter):
     assert isinstance(meta["description"], str) and meta["description"].strip()
 
 
-def test_references_real_paths(text):
-    # every concrete artifact the skill points at must actually exist
-    for rel in ["schema/ticket.schema.json", "profile/profile.schema.json", "ticketly/render.py"]:
+def test_references_real_engine_data(text):
+    # the skill points at engine data via ENGINE/<path>; those files must exist
+    for rel in ["schema/ticket.schema.json", "house-style/default.json",
+                "examples/house-style-backlog.json"]:
         assert rel in text, f"skill should reference {rel}"
         assert (ROOT / rel).is_file(), f"skill references missing file {rel}"
 

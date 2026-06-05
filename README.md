@@ -2,36 +2,44 @@
 
 Turn messy project requirements into clean, structured, PM-quality tickets — EPICs broken into child tickets, with dependencies, effort estimates, and acceptance criteria, ready to drop into any tracker.
 
-Ticketly runs **inside Claude Code / Codex** — your team clones the repo and runs it with their existing subscription. **No API key, no setup.**
+Ticketly runs **inside Claude Code / Codex** with your existing subscription. **No API key.** Install it once, then run `/ticketly` from **any** folder — including a brand-new empty project that doesn't contain this codebase.
 
 ## Status
 
-Early build. Foundation + Phase 1 (profile, generator skill, renderers) are in place:
+Roadmap Phases 1–4 are in place, and Ticketly installs globally (run it from any folder):
 
 - `schema/ticket.schema.json` — the single source of truth for every ticket. Lean **9 core fields** (id, title, type, parent, status, effort, dependencies, description, acceptance_criteria, plus a `needs_clarification` guardrail) and **3 optional fields** (assignee, due_date, priority) that stay hidden until a growing team needs them.
 - `profile/profile.schema.json` — the per-project **profile**: the company, project, user-supplied tech stack and architecture, and the agreed ticket-ID prefix scheme. Gathered before any tickets are written, and reused across runs.
 - `house-style/` — the **house style**: the effort rubric (what each Fibonacci point means), the default ID-prefix vocabulary, tone rules for titles/descriptions/acceptance criteria, and a pointer to a few-shot example backlog. Generated tickets match this voice; a project can override the default.
-- `.claude/skills/ticketly/SKILL.md` — the **`/ticketly`** skill that drives generation inside Claude Code.
+- `.claude/skills/ticketly/SKILL.md` — the **`/ticketly`** skill that drives generation inside Claude Code, from any folder.
+- `install.sh` + `pyproject.toml` — one-time install: the `ticketly` engine (importable anywhere) and the skill (copied into your personal Claude Code skills dir). `ticketly/home.py` locates the engine's bundled data so it works regardless of where you run it.
 - `ticketly/render.py` — validates a backlog and renders it to **Markdown + CSV** (with a topologically sorted **Build order** section).
 - `ticketly/validate.py` — **integrity checks** beyond the schema: duplicate IDs, dangling/circular dependencies, orphan or non-epic parents, oversized epics, and missing acceptance criteria. Rendering aborts on any error.
 - `examples/` — a worked example backlog and profile that validate against their schemas.
 - `tests/` — structural tests guarding the schemas, the renderers, and the skill.
 
-## Setup
+## Install once
+
+From the Ticketly repo, run:
 
 ```bash
-python3 -m pip install -r requirements.txt
+./install.sh
 ```
 
-`jsonschema` is the only runtime dependency (validation + rendering); `pytest` and `PyYAML` are for the tests.
+This installs the `ticketly` engine and copies the `/ticketly` skill into your personal Claude Code skills directory. You only do this once (re-running is safe). After that you never touch this repo again to use Ticketly.
 
-## Using it
+## Using it (from any folder)
 
-Run **`/ticketly`** in Claude Code. It walks a project through four stages — you can stop after any of them and resume later:
+1. Open **any** folder in Claude Code — your real project, even an empty one.
+2. Type **`/ticketly`**.
+3. Describe your project — it asks fresh each time (company, project, stack, architecture) and builds a profile for *that* folder.
+4. It generates the tickets and writes `profiles/`, `backlogs/`, and `build/` **into your current folder**.
+
+The flow has stages you can stop and resume:
 
 1. **Start** — give your company and project (Ticketly never invents these).
 2. **Discuss** — talk through the stack and architecture, free-form. No interrogation; a few focused questions at a time.
-3. **Distill** — when you're ready, it writes a `profiles/<project>.json` profile and **suggests an ID-prefix scheme** (`WEB`, `API`, `DB`, `AUTH`, …) from your stack for you to confirm or edit.
+3. **Distill** — it writes a `profiles/<project>.json` profile and **suggests an ID-prefix scheme** (`WEB`, `API`, `DB`, `AUTH`, …) from your stack for you to confirm or edit.
 4. **Generate** — it writes epics, breaks them into tickets with dependencies, Fibonacci effort, and acceptance criteria, then renders them.
 
 Render a backlog to review-ready output any time:
