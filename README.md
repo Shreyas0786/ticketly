@@ -1,88 +1,85 @@
 # Ticketly
 
-Turn messy project requirements into clean, structured, PM-quality tickets — EPICs broken into child tickets, with dependencies, effort estimates, and acceptance criteria, ready to drop into any tracker.
+**Turn a messy project idea into a clean, structured backlog — without leaving Claude Code.**
 
-Ticketly runs **inside Claude Code / Codex** with your existing subscription. **No API key.** Install it once, then run `/ticketly` from **any** folder — including a brand-new empty project that doesn't contain this codebase.
+Describe what you're building, and Ticketly breaks it into professional tickets: big areas split
+into individual tasks, each with a clear description, acceptance criteria, an effort estimate, and
+dependencies — ready to drop into Notion or any tracker.
 
-## Status
+## Who it's for
 
-Roadmap Phases 1–4 are in place, and Ticketly installs globally (run it from any folder):
+Anyone planning a project who wants a real backlog instead of a blank page — **technical or not.**
+It talks in plain language, explains anything it asks, and never makes you learn jargon. If you can
+describe your idea, you can use it.
 
-- `schema/ticket.schema.json` — the single source of truth for every ticket. Lean **9 core fields** (id, title, type, parent, status, effort, dependencies, description, acceptance_criteria, plus a `needs_clarification` guardrail) and **3 optional fields** (assignee, due_date, priority) that stay hidden until a growing team needs them.
-- `profile/profile.schema.json` — the per-project **profile**: the company, project, user-supplied tech stack and architecture, and the agreed ticket-ID prefix scheme. Gathered before any tickets are written, and reused across runs.
-- `house-style/` — the **house style**: the effort rubric (what each Fibonacci point means), the default ID-prefix vocabulary, tone rules for titles/descriptions/acceptance criteria, and a pointer to a few-shot example backlog. Generated tickets match this voice; a project can override the default.
-- `.claude/skills/ticketly/SKILL.md` — the **`/ticketly`** skill that drives generation inside Claude Code, from any folder.
-- `install.sh` + `pyproject.toml` — one-time install: the `ticketly` engine (importable anywhere) and the skill (copied into your personal Claude Code skills dir). `ticketly/home.py` locates the engine's bundled data so it works regardless of where you run it.
-- `ticketly/render.py` — validates a backlog and renders it to **Markdown + CSV** (with a topologically sorted **Build order** section).
-- `ticketly/validate.py` — **integrity checks** beyond the schema: duplicate IDs, dangling/circular dependencies, orphan or non-epic parents, oversized epics, and missing acceptance criteria. Rendering aborts on any error.
-- `examples/` — a worked example backlog and profile that validate against their schemas.
-- `tests/` — structural tests guarding the schemas, the renderers, and the skill.
+## What it does
 
-## Install once
+- **Plans the whole project** — turns your idea or spec into epics (big areas) broken into tickets.
+- **Asks, never guesses** — if something isn't decided (which database? which host?), it flags the
+  ticket for clarification instead of making something up. Nothing is invented.
+- **Matches a real PM's style** — short, clear titles; one-line descriptions; testable acceptance
+  criteria; sensible effort sizing.
+- **Full or MVP** — you choose whether to plan everything or just enough for a first version (it
+  lists whatever it sets aside).
+- **Works out of the box** — exports to Markdown (to review), CSV (any tracker), and Notion.
 
-From the Ticketly repo, run:
+## How it works
+
+Ticketly runs **inside Claude Code, using your existing subscription — no API key, no cost per run.**
+You talk; it does the planning; a small local engine handles the exact, repeatable parts
+(validation and exporting). A full run goes:
+
+1. **Start** — you give your company and project. (It never guesses these.)
+2. **Discuss** — you talk through what you're building and your tech stack, conversationally.
+3. **Areas** — it proposes a few main areas for your project and you confirm or tweak them.
+4. **Scope** — you pick a full backlog or a lean MVP.
+5. **Generate** — it writes the tickets, checks them for problems, and exports the results into
+   your project folder.
+
+You can stop after any step and pick up later, and refine anything in plain English afterwards
+("split this ticket", "add acceptance criteria", "we're using Postgres", "drop image upload").
+
+## Install
+
+Install once, from the Ticketly repo:
 
 ```bash
 ./install.sh
 ```
 
-This installs the `ticketly` engine and symlinks the `/ticketly` skill into your personal Claude Code skills directory. You only do this once. **To update later, just `git pull` in this repo** — both the engine (editable install) and the skill (symlink) track it automatically, no reinstall needed.
+That's the whole setup. From then on, `/ticketly` works in **any** folder — even an empty new
+project that doesn't contain this code.
 
-## Using it (from any folder)
+**To update later, just `git pull` in this repo.** No reinstall.
 
-1. Open **any** folder in Claude Code — your real project, even an empty one.
+> Requirements: [Claude Code](https://claude.com/claude-code) (logged in) and Python 3.10+.
+
+## Using it
+
+1. Open **any** folder in Claude Code — your project, even an empty one.
 2. Type **`/ticketly`**.
-3. Describe your project — it asks fresh each time (company, project, stack, architecture) and builds a profile for *that* folder.
-4. It generates the tickets and writes `profiles/`, `backlogs/`, and `build/` **into your current folder**.
+3. Describe your project and answer its questions.
 
-The flow has stages you can stop and resume:
+It writes everything into your current folder:
 
-1. **Start** — give your company and project (Ticketly never invents these, and never guesses your company from your email).
-2. **Discuss** — talk through the stack and architecture, free-form. No interrogation; a few focused questions at a time.
-3. **Distill** — it writes a `profiles/<project>.json` profile and proposes a few **main areas** (with short tags like `WEB`, `API`, …) for you to confirm or edit — in plain language, no jargon required.
-4. **Choose scope** — it asks whether you want the **full backlog** or a lean **MVP** (and if MVP, lists what it set aside for later).
-5. **Generate** — it writes epics, breaks them into tickets with dependencies, effort, and acceptance criteria, then renders them.
+- `profiles/<project>.json` — what it learned about your project (reused on later runs).
+- `backlogs/<project>.json` — the generated tickets.
+- `build/<project>.md` — a readable backlog with a suggested build order.
+- `build/<project>.csv` — import into any tracker. Add Notion with `--format notion`.
 
-Render a backlog to review-ready output any time:
+You can re-export a backlog any time:
 
 ```bash
-python3 -m ticketly.render backlogs/<project>.json --format both --out-dir build/
+python3 -m ticketly.render backlogs/<project>.json --format all --out-dir build/
 ```
 
-This validates the backlog against the schema **and runs the integrity checks** first, then writes `build/<project>.md` (epic-grouped table + Build order) and `build/<project>.csv` (universal tracker import). A backlog with any integrity error is refused.
+## Safe by design
 
-For **Notion**, add `--format notion` (or `--format all`) to also write `build/<project>.notion.csv`, laid out for Notion's CSV import (title-first, parent as `Epic`, dependencies as a multi-select). To check a backlog without rendering:
+- Runs **entirely on your machine** — no network calls, no telemetry, nothing sent anywhere.
+- Uses **no API keys** and never asks for secrets.
+- Only reads/writes the folder you run it in. `install.sh` just installs a local Python package
+  and links the skill — no `sudo`, no remote scripts.
 
-```bash
-python3 -m ticketly.validate backlogs/<project>.json
-```
+---
 
-## What it does and doesn't do
-
-Ticketly is meant to be safe to run on any of your projects:
-
-- **Runs entirely on your machine.** No network calls, no telemetry, nothing is sent anywhere.
-- **No credentials.** It uses no API keys and never asks for any secrets.
-- **Stays in your folder.** It only reads the engine's bundled data and reads/writes the folder you run it in (`profiles/`, `backlogs/`, `build/`).
-- **`install.sh` is the whole setup** — it installs the Python package locally (`pip install -e .`) and copies the `/ticketly` skill into your Claude Code skills directory. No `sudo`, no remote scripts.
-
-## Conventions
-
-- **IDs:** epics are `EPIC-<PREFIX>` (e.g. `EPIC-REL`); tasks inherit the prefix as `<PREFIX>-NNN` (e.g. `REL-002`). The prefix groups a theme; `parent` links a task to its epic.
-- **Effort:** Fibonacci story points (1, 2, 3, 5, 8, 13). Epics are `0` — they are sized by their children.
-- **Company & project are user-supplied.** Every backlog records the `company` and `project` it is for. Ticketly asks for these and never invents them.
-- **Guardrail:** Ticketly never invents requirements. If something is unspecified, the ticket is flagged `needs_clarification` instead of hallucinating scope.
-
-## Roadmap
-
-1. **Phase 1** ✅ — generator command + Markdown and CSV renderers.
-2. **Phase 2** ✅ — per-project house-style config + few-shot examples.
-3. **Phase 3** ✅ — dependency validation, build-order view, dedupe, plain-English refine loop.
-4. **Phase 4** ✅ — Notion export (CSV is already the universal path).
-5. **Phase 5** — web UI for a public, open-source release.
-
-## Tests
-
-```bash
-python3 -m pytest -q
-```
+_Development: run the test suite with `python3 -m pytest -q`._
