@@ -26,7 +26,7 @@ From the Ticketly repo, run:
 ./install.sh
 ```
 
-This installs the `ticketly` engine and copies the `/ticketly` skill into your personal Claude Code skills directory. You only do this once (re-running is safe). After that you never touch this repo again to use Ticketly.
+This installs the `ticketly` engine and symlinks the `/ticketly` skill into your personal Claude Code skills directory. You only do this once. **To update later, just `git pull` in this repo** — both the engine (editable install) and the skill (symlink) track it automatically, no reinstall needed.
 
 ## Using it (from any folder)
 
@@ -37,10 +37,11 @@ This installs the `ticketly` engine and copies the `/ticketly` skill into your p
 
 The flow has stages you can stop and resume:
 
-1. **Start** — give your company and project (Ticketly never invents these).
+1. **Start** — give your company and project (Ticketly never invents these, and never guesses your company from your email).
 2. **Discuss** — talk through the stack and architecture, free-form. No interrogation; a few focused questions at a time.
-3. **Distill** — it writes a `profiles/<project>.json` profile and **suggests an ID-prefix scheme** (`WEB`, `API`, `DB`, `AUTH`, …) from your stack for you to confirm or edit.
-4. **Generate** — it writes epics, breaks them into tickets with dependencies, Fibonacci effort, and acceptance criteria, then renders them.
+3. **Distill** — it writes a `profiles/<project>.json` profile and proposes a few **main areas** (with short tags like `WEB`, `API`, …) for you to confirm or edit — in plain language, no jargon required.
+4. **Choose scope** — it asks whether you want the **full backlog** or a lean **MVP** (and if MVP, lists what it set aside for later).
+5. **Generate** — it writes epics, breaks them into tickets with dependencies, effort, and acceptance criteria, then renders them.
 
 Render a backlog to review-ready output any time:
 
