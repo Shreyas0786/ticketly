@@ -38,6 +38,24 @@ Never invent a company name, a tech stack, scope, or requirements. Everything in
 ticket must come from the user. When requirements are too thin to write a real ticket, set
 `needs_clarification: true` and say what is missing — do **not** fill the gap with a guess.
 
+**This includes the company name.** Do NOT infer it from the user's email address, git config,
+environment, account, or a spec file. Never offer a specific real company name as a pre-filled
+option. Just ask the user to tell you, and accept what they type.
+
+## Talk like a builder, not a developer
+
+Assume the person may be non-technical. Your job is to make planning feel easy, not to quiz them
+on jargon they didn't introduce.
+
+- **Lead with plain meaning; make codes a footnote.** Say "the part people use — chat and
+  selectors" and mention the tag (`WEB`) only as a small aside. Never head a question with
+  "prefix scheme" or "epic" cold.
+- **Explain any concept in one plain sentence the first time it appears.** An epic is "a big area
+  of the project that related tasks live under." Effort points are "rough sizes — small to large."
+- **Always offer an obvious low-effort path.** If they're unsure, let them say "looks good, you
+  decide" — and reassure that nothing is locked and anything can be renamed or changed later.
+- **Never make them confront a word they didn't say.** Translate, don't lecture.
+
 ## House style — read this first
 
 Before generating, read the house style from `ENGINE/house-style/default.json` (if the current
@@ -58,12 +76,15 @@ A project moves through these stages. The user can stop after any of them and re
 
 ### 1. Start a project
 
-Every folder gets its own profile. Ask for the two things Ticketly never invents:
+Every folder gets its own profile. Ask the user for the two things Ticketly never invents:
 
-- **Company** — the organization the work is for.
-- **Project** — the project name.
+- **Company / organization** — whoever the work is for. If it's a personal or unnamed project,
+  that's fine — they can use their own name or the project name.
+- **Project** — what they're building.
 
-Use placeholders like "Demo Company / Demo Project" only in examples, never as a real value.
+Ask plainly and wait for their answer. **Do not pre-fill or suggest a real company name** (from
+their email, account, git, or a spec). Use "Demo Company / Demo Project" only in this guide's
+examples, never as a real value.
 
 ### 2. Discuss (free-form)
 
@@ -80,27 +101,58 @@ to `./profiles/<project-slug>.json` in the current folder, conforming to the pro
 
 - `stack` — only the layers the user named. Leave a layer out if they didn't mention it.
 - `architecture.components` — the major moving parts, in their words.
-- `prefixes` — **suggest** a ticket-ID prefix per domain/layer, drawn from the house style's
-  `prefix_vocab` and filtered to the project's actual layers, then **show the user and let them
-  confirm or edit before continuing.** Add a project-specific prefix only when the user names a
-  domain the vocabulary doesn't cover.
+- `prefixes` — the ID prefix per area, drawn from the house style's `prefix_vocab` and filtered to
+  the project's actual areas. Add a project-specific prefix only when the user names a domain the
+  vocabulary doesn't cover.
 
-Validate it (works from any folder — the schema comes from the engine):
+**Then confirm the areas with the user — in plain language.** Don't open with "prefix scheme" or
+"epics." Present it as *how the project splits into a few main areas*, lead with the human meaning,
+and keep the short tag as an aside. For example:
+
+> Here's how I'd split your project into a few main areas — each one is a bucket related tasks live
+> under:
+> - **The app people use** — chat, selectors, citations *(tag: `WEB`)*
+> - **The AI answer engine** — Claude-powered responses *(tag: `API`)*
+> - **The knowledge base** — version-accurate retrieval *(tag: `RAG`)*
+> - …
+>
+> Does this split feel right? If you're not sure, just say *looks good* — these are sensible
+> defaults, nothing's locked, and you can rename or regroup anytime.
+
+Let them confirm or edit before continuing. Validate the saved profile (works from any folder —
+the schema comes from the engine):
 
 ```bash
 python3 -m ticketly.profile profiles/<slug>.json
 ```
 
-### 4. Generate the backlog
+### 4. Choose the scope
 
-Using the confirmed profile + the requirements:
+Before writing any tickets, ask the user how much they want to plan right now. Let them decide —
+don't assume:
 
-1. **Epics first.** One `EPIC-<PREFIX>` per domain from the profile's prefixes (only those that
-   have real work). Epics have `effort: 0` and `acceptance_criteria: []`.
+> **How much do you want to plan right now?**
+> 1. **Full backlog** — everything in your spec, all phases and areas.
+> 2. **MVP / starter** — just enough to get a working first version; I'll list what I set aside for later.
+> 3. **Not sure** — I'll explain the difference.
+
+- **Full** — generate the complete backlog across every area.
+- **MVP** — generate only the tickets needed for a first usable version (typically the first phase
+  of a phased plan and the core happy path). **Never silently drop scope:** after the MVP backlog,
+  list everything you set aside ("Deferred for later: accounts, 2nd software, image input, …") so
+  the user sees the full picture and can pull anything back in with a plain-English edit.
+
+### 5. Generate the backlog
+
+Using the confirmed profile, the requirements, and the chosen scope:
+
+1. **Epics first.** One `EPIC-<PREFIX>` per area from the profile's prefixes (only those that have
+   real work in the chosen scope). Epics have `effort: 0` and `acceptance_criteria: []`.
 2. **Break each epic into Tasks** — `<PREFIX>-NNN`, inheriting the epic's prefix. Each Task needs:
    a clear `description`, testable `acceptance_criteria` (non-empty), Fibonacci `effort`
    (1, 2, 3, 5, 8, 13), and `dependencies` (other ticket IDs, or `[]`). Write every field in the
-   house style's `tone`, and size `effort` against its `effort_rubric`.
+   house style's `tone`, and size `effort` against its `effort_rubric`. When you show effort to the
+   user, translate it plainly (e.g. small / medium / large) — the number is the detail, not the headline.
 3. **Dependencies & build order** — wire `dependencies` so the backlog reads in a sensible build
    order. Never create a circular or dangling dependency.
 4. **Guardrail** — anything underspecified gets `needs_clarification: true`, not a guess.
@@ -108,7 +160,7 @@ Using the confirmed profile + the requirements:
 Write the result to `./backlogs/<project-slug>.json` in the current folder. It must conform to the
 ticket schema at `ENGINE/schema/ticket.schema.json`.
 
-### 5. Check integrity & dedupe
+### 6. Check integrity & dedupe
 
 Before rendering, run the integrity checker — it catches what the schema can't:
 
@@ -124,7 +176,7 @@ any. For each warning, do a real **dedupe pass**: decide whether the flagged tic
 the same work and, if so, merge them (keep one ID, union the acceptance criteria and dependencies,
 repoint anything that depended on the dropped ID). Don't merge things that merely sound alike.
 
-### 6. Render
+### 7. Render
 
 ```bash
 python3 -m ticketly.render backlogs/<slug>.json --format both --out-dir build/
