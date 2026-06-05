@@ -76,9 +76,10 @@ def test_few_shot_backlog_exists_and_validates(default):
     Draft202012Validator(ticket_schema).validate(json.loads(backlog_path.read_text()))
 
 
-def test_few_shot_backlog_is_scrubbed_of_borrowed_name(default):
-    blob = (ROOT / default["few_shot"]["backlog"]).read_text().lower()
-    assert "nexaone" not in blob
+def test_few_shot_backlog_uses_placeholder_company(default):
+    backlog = json.loads((ROOT / default["few_shot"]["backlog"]).read_text())
+    assert backlog["company"] == "Demo Company"
+    assert backlog["project"] == "Demo Project"
 
 
 def test_few_shot_uses_house_vocab_prefixes(default):

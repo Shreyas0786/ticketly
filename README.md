@@ -56,6 +56,15 @@ For **Notion**, add `--format notion` (or `--format all`) to also write `build/<
 python3 -m ticketly.validate backlogs/<project>.json
 ```
 
+## What it does and doesn't do
+
+Ticketly is meant to be safe to run on any of your projects:
+
+- **Runs entirely on your machine.** No network calls, no telemetry, nothing is sent anywhere.
+- **No credentials.** It uses no API keys and never asks for any secrets.
+- **Stays in your folder.** It only reads the engine's bundled data and reads/writes the folder you run it in (`profiles/`, `backlogs/`, `build/`).
+- **`install.sh` is the whole setup** — it installs the Python package locally (`pip install -e .`) and copies the `/ticketly` skill into your Claude Code skills directory. No `sudo`, no remote scripts.
+
 ## Conventions
 
 - **IDs:** epics are `EPIC-<PREFIX>` (e.g. `EPIC-REL`); tasks inherit the prefix as `<PREFIX>-NNN` (e.g. `REL-002`). The prefix groups a theme; `parent` links a task to its epic.

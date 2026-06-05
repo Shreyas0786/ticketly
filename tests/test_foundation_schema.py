@@ -96,10 +96,11 @@ def test_example_validates_against_schema(schema):
     Draft202012Validator(schema).validate(data)
 
 
-def test_example_uses_no_borrowed_company_name():
-    # guardrail: never bake a real/prior company name into shipped artifacts
-    blob = EXAMPLE_PATH.read_text().lower()
-    assert "nexaone" not in blob
+def test_example_uses_only_placeholder_company():
+    # guardrail: shipped artifacts use neutral placeholders, never a real/prior company
+    data = json.loads(EXAMPLE_PATH.read_text())
+    assert data["company"] == "Demo Company"
+    assert data["project"] == "Demo Project"
 
 
 @pytest.fixture

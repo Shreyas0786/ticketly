@@ -61,9 +61,9 @@ def test_example_validates(schema, example):
     Draft202012Validator(schema).validate(example)
 
 
-def test_example_uses_no_borrowed_company_name():
-    blob = EXAMPLE_PATH.read_text().lower()
-    assert "nexaone" not in blob
+def test_example_uses_only_placeholder_company(example):
+    assert example["company"] == "Demo Company"
+    assert example["project"] == "Demo Project"
 
 
 def test_example_prefixes_are_unique(example):
