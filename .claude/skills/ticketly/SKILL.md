@@ -240,10 +240,13 @@ This re-checks integrity, then writes `./build/<slug>.md` (epic-grouped, with a 
 sorted **Build order** section, review-ready) and `./build/<slug>.csv` (universal tracker import)
 into the current folder. Show the user the Markdown.
 
+Both CSVs carry a blank **Assignee** column — Ticketly never invents owners; the user (or their
+team) fills it in later in the tracker.
+
 When the user wants to import into **Notion**, add `--format notion` (or `--format all` for
 everything). It writes `./build/<slug>.notion.csv`, laid out for Notion import: the title leads
 (Notion's page title), `Epic` holds the parent, `Dependencies` are comma-separated for a
-multi-select, and acceptance criteria are one per line. Tell the user to use Notion's
+multi-select, acceptance criteria are one per line, and `Assignee` is left empty to fill in. Tell the user to use Notion's
 **Import → CSV → Merge with CSV** into a database, then convert `Status`/`Dependencies` to the
 property types they want.
 
