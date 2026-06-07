@@ -66,10 +66,26 @@ that doesn't contain this code. Running it with no argument just prints these ch
 
 The engine is shared, so you can install both and use whichever agent you're in — they don't clash.
 
-**To update later, just `git pull` in this repo.** No reinstall.
-
 > Requirements: Python 3.10+, and either [Claude Code](https://claude.com/claude-code) or
 > [Codex](https://developers.openai.com/codex/cli) (logged in).
+
+## Updating
+
+The engine is an editable install and the skill is symlinked back to this repo, so updating is just:
+
+```bash
+git pull
+```
+
+That's everything — no reinstall. The only one-time exception is **adding Codex later** (a new front
+door that wasn't wired up before):
+
+```bash
+git pull
+./install.sh codex     # or: ./install.sh all
+```
+
+After that, future updates are `git pull` again.
 
 ## Using it
 
