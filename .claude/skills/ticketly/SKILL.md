@@ -22,8 +22,9 @@ straight is the whole game:
   python3 -m ticketly.home
   ```
 
-  Call the printed path `ENGINE`. **Read** the schemas, `ENGINE/house-style/default.json`, and
-  `ENGINE/examples/house-style-backlog.json` from there by absolute path.
+  Call the printed path `ENGINE`. **Read** the schemas, `ENGINE/house-style/default.json`,
+  `ENGINE/examples/house-style-backlog.json`, and `ENGINE/archetypes/archetypes.json` from there
+  by absolute path.
 
 - **The current folder** — wherever the user launched Claude Code; their project. **Write**
   everything here: `./profiles/<slug>.json`, `./backlogs/<slug>.json`, `./build/`. Each folder
@@ -142,19 +143,49 @@ question. **Never scrape a *company* name** from `package.json`/`pyproject.toml`
 
 ### 2. Discuss (free-form)
 
-Talk through the project with the user: what it is, the frontend / backend / database / infra
-they use, how the pieces fit together, key constraints. This is a conversation, not a form —
-ask 2–4 focused questions at a time, don't interrogate. The goal is to understand the system
-well enough to write sharp tickets. Recommend (don't impose) options only if the user explicitly
-asks "what should I use?" — otherwise capture what they have.
+Talk through the project with the user: what it is, how the pieces fit together, key constraints.
+This is a conversation, not a form — ask 2–4 focused questions at a time, don't interrogate. The
+goal is to understand the system well enough to write sharp tickets.
+
+**If the user already has a stack, capture it — don't second-guess it.** On an **existing project**
+(§1b) the stack comes from the code; name the archetype if it helps frame the work, but never push a
+different stack on a running app.
+
+**When the user is building something new and hasn't settled on a stack, be a guide, not a stenographer.**
+Most builders — especially non-technical ones — don't know what to ask for, so the generic default
+("React and a backend later") wins by silence. Don't let it. Read `ENGINE/archetypes/archetypes.json`
+and use it:
+
+1. **Classify the archetype** from how they describe the project, using each entry's `signals`
+   (e.g. "two kinds of users who exchange money" → `marketplace`). If it's genuinely unclear between
+   two, ask one plain question to decide. Don't announce the jargon id — say "sounds like a marketplace."
+2. **Ask only the forking question(s).** Each archetype lists `branch_questions` — the one or two
+   things that actually change the recommendation (e.g. mobile: "iPhone only, or Android too?"). Ask
+   those, nothing more. This is the intelligence: a couple of sharp questions, not an interrogation.
+3. **Recommend free-first, with the reasoning and a real alternative.** Pick the `option` whose `when`
+   matches their answers and present it in plain language: the `stack`, **why** it fits (`why`), and a
+   genuine `alternative` with *when you'd choose it instead*. Lead with the cheapest path that works —
+   honour the `cost` field: `free`/`freemium` are fine to present as "start at $0"; for `paid`, **say so
+   plainly** ("this one isn't free — here's why, and the cheapest real alternative"). Never pretend a
+   paid path is free.
+4. **Never skip the backend.** Walk the archetype's `backend_checklist` even on the simplest tier —
+   the data store, login, payments/payouts, jobs, storage. This is the gap that generic answers leave;
+   surfacing it (in plain words, with the *why*) is the whole point.
+5. **Keep it theirs.** Recommend, don't impose. Offer the low-effort path ("if you're unsure, this is a
+   sensible default — nothing's locked"). If they want something different, capture what they choose.
+
+The stack the user lands on (and the archetype id) flows into the profile in the next step.
 
 ### 3. Distill into a profile
 
 When the user is ready (e.g. "save the profile", "distill", "looks good"), write what you learned
 to `./profiles/<project-slug>.json` in the current folder, conforming to the profile schema:
 
-- `stack` — only the layers the user named. Leave a layer out if they didn't mention it.
+- `stack` — only the layers the user named or accepted (including any you recommended in Discuss and
+  they agreed to). Leave a layer out if there's nothing for it.
 - `architecture.components` — the major moving parts, in their words.
+- `archetype` — optional: the matched archetype id (e.g. `marketplace`, `ai-app`) when you recommended
+  a stack during Discuss. Omit it on an existing-project run where the stack was read from the code.
 - `prefixes` — the ID prefix per area, drawn from the house style's `prefix_vocab` and filtered to
   the project's actual areas. Add a project-specific prefix only when the user names a domain the
   vocabulary doesn't cover.
@@ -270,5 +301,7 @@ and show the result.
 - **Effort:** Fibonacci points only (1, 2, 3, 5, 8, 13). Epics are `0`, sized by their children.
 - **Schema is the source of truth.** Backlogs validate against `ENGINE/schema/ticket.schema.json`,
   profiles against `ENGINE/profile/profile.schema.json`, the house style against
-  `ENGINE/house-style/house-style.schema.json`. The `ticketly.validate`, `ticketly.profile`, and
-  `ticketly.render` commands load these for you — you do not need to pass the schema path.
+  `ENGINE/house-style/house-style.schema.json`, and the archetype library against
+  `ENGINE/archetypes/archetypes.schema.json`. The `ticketly.validate`, `ticketly.profile`,
+  `ticketly.render`, and `ticketly.archetypes` commands load these for you — you do not need to pass
+  the schema path.

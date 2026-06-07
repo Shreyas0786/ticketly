@@ -18,6 +18,11 @@ describe your idea, you can use it.
 - **Works on existing codebases too** — point it at a repo and it reads the code, infers the stack,
   and plans the work that's *left* (TODOs, half-built features, missing tests) instead of starting
   from a blank page. No company name needed for these — the backlog is titled by your project.
+- **Suggests a tech stack that fits — not the same generic answer every time** — if you're not sure
+  what to build with, it works out *what kind* of project yours is (marketplace, mobile app, online
+  store, AI app…) and recommends a fitting stack, **free options first**, with plain-language reasons
+  and a real alternative for each — and it never quietly skips the backend (database, logins,
+  payments, storage). Already have a stack? It just uses yours.
 - **Asks, never guesses** — if something isn't decided (which database? which host?), it flags the
   ticket for clarification instead of making something up. Nothing is invented.
 - **Matches a real PM's style** — short, clear titles; one-line descriptions; testable acceptance
@@ -34,8 +39,10 @@ You talk; it does the planning; a small local engine handles the exact, repeatab
 
 1. **Start** — you give your project (and company, if you want one in the title). It never guesses
    these. **On an existing repo it skips this and reads the code instead** — no company needed.
-2. **Discuss** — you talk through what you're building and your tech stack, conversationally. (For
-   an existing repo it drafts this from the code and just asks you to confirm.)
+2. **Discuss** — you talk through what you're building and your tech stack, conversationally. If you
+   don't have a stack in mind, it recommends one that fits your kind of project (free options first,
+   with reasons and alternatives). (For an existing repo it drafts this from the code and just asks
+   you to confirm.)
 3. **Areas** — it proposes a few main areas for your project and you confirm or tweak them.
 4. **Scope** — you pick a full backlog or a lean MVP.
 5. **Generate** — it writes the tickets, checks them for problems, and exports the results into

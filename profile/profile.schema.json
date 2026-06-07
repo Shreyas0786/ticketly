@@ -21,6 +21,11 @@
       "type": "string",
       "description": "Optional one- or two-sentence description of what the project is, in the user's words."
     },
+    "archetype": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional. The matched project archetype id from the archetype library (e.g. 'marketplace', 'ai-app'), recorded when Ticketly recommended a stack during Discuss. Omit on existing-project runs where the stack was read from the code rather than recommended."
+    },
     "stack": {
       "type": "object",
       "additionalProperties": false,
