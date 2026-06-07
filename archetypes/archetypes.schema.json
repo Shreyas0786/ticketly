@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ticketly.dev/schema/archetypes.schema.json",
+  "title": "Ticketly Archetype Library",
+  "description": "A curated reference of common project archetypes (marketplace, SaaS, content site, store, mobile, social, internal tool, AI app). For each, Ticketly knows how to recognize it, the one or two questions that actually change the stack, a free-first recommendation per branch with reasoning and an honest alternative, and the backend pieces it must never skip. The /ticketly skill reads this during Discuss to recommend a fitting, non-generic stack instead of defaulting to the same trendy answer for every project.",
+  "type": "object",
+  "required": ["archetypes"],
+  "additionalProperties": false,
+  "properties": {
+    "archetypes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/archetype" }
+    }
+  },
+  "$defs": {
+    "cost": {
+      "type": "string",
+      "enum": ["free", "freemium", "paid"],
+      "description": "free = $0 to build and ship. freemium = free tier to start, pay as you grow. paid = costs money from day one — Ticketly must say so plainly rather than pretend it is free."
+    },
+    "archetype": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "signals", "branch_questions", "options", "backend_checklist"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Stable kebab-case key, e.g. 'marketplace', 'saas-web-app'."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human label shown to the user, e.g. 'Marketplace (two-sided)'."
+        },
+        "signals": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Plain-language cues that point to this archetype from how the user describes their project."
+        },
+        "branch_questions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "The one or two questions that genuinely change the recommendation. Ask only these — not a full interrogation."
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/option" },
+          "description": "One recommendation per branch / answer combination."
+        },
+        "backend_checklist": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "The backend / architecture pieces that are non-optional for this archetype — the part generic answers skip."
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["when", "stack", "cost", "why", "alternative"],
+      "properties": {
+        "when": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Which branch answer this recommendation is for, in plain words."
+        },
+        "stack": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The recommended stack, free-first, in builder language."
+        },
+        "cost": { "$ref": "#/$defs/cost" },
+        "why": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why this fits the project — the reasoning, not just the name."
+        },
+        "alternative": { "$ref": "#/$defs/alternative" }
+      }
+    },
+    "alternative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stack", "when_instead"],
+      "properties": {
+        "stack": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A credible alternative to the recommended stack."
+        },
+        "when_instead": {
+          "type": "string",
+          "minLength": 1,
+          "description": "When the user would pick the alternative instead."
+        }
+      }
+    }
+  }
+}

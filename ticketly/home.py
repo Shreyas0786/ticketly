@@ -15,8 +15,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# The data dirs (schema/, house-style/, examples/, profile/) sit one level above
-# the package directory.
+# The data dirs (schema/, house-style/, examples/, profile/, archetypes/) sit one
+# level above the package directory.
 DATA_ROOT = Path(__file__).resolve().parent.parent
 
 TICKET_SCHEMA = DATA_ROOT / "schema" / "ticket.schema.json"
@@ -24,6 +24,8 @@ PROFILE_SCHEMA = DATA_ROOT / "profile" / "profile.schema.json"
 HOUSE_STYLE_SCHEMA = DATA_ROOT / "house-style" / "house-style.schema.json"
 HOUSE_STYLE_DEFAULT = DATA_ROOT / "house-style" / "default.json"
 FEW_SHOT_BACKLOG = DATA_ROOT / "examples" / "house-style-backlog.json"
+ARCHETYPES = DATA_ROOT / "archetypes" / "archetypes.json"
+ARCHETYPES_SCHEMA = DATA_ROOT / "archetypes" / "archetypes.schema.json"
 
 
 def main(argv: list[str] | None = None) -> int:

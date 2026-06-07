@@ -1,0 +1,410 @@
+{
+  "archetypes": [
+    {
+      "id": "marketplace",
+      "label": "Marketplace (two-sided)",
+      "signals": [
+        "Two kinds of users who see different things (buyers and sellers, owners and providers)",
+        "Money or bookings change hands between users, not just between user and you",
+        "Listings, profiles, reviews, and search are central"
+      ],
+      "branch_questions": [
+        "Do you want it live fast to test demand, or is this a polished long-term build?",
+        "Does money actually move between users (you pay out sellers), or are you just connecting people for now?"
+      ],
+      "options": [
+        {
+          "when": "Get live fast — test demand, payments included",
+          "stack": "Supabase (database + logins + file storage) + a simple web frontend + Stripe Connect for seller payouts",
+          "cost": "freemium",
+          "why": "A marketplace has two sides who see different data; Supabase gives you a real database, logins, and per-role rules in one free project, so you skip building a backend from scratch. Stripe Connect is the non-obvious must — it pays money out to your sellers, which plain Stripe does not do.",
+          "alternative": {
+            "stack": "Firebase instead of Supabase",
+            "when_instead": "if the app is more chat/realtime-heavy than listings-heavy — but most marketplaces have relational data (listings linked to bookings linked to payouts) that fits Supabase's database better"
+          }
+        },
+        {
+          "when": "Polished / built to last",
+          "stack": "Next.js (full-stack) + Postgres (Supabase or Neon) + Stripe Connect + Resend for email",
+          "cost": "freemium",
+          "why": "A full-stack Next.js app keeps your frontend and server logic in one place; Postgres handles the relational data a marketplace lives on; Stripe Connect still does payouts; Resend sends the booking and receipt emails.",
+          "alternative": {
+            "stack": "A dedicated backend (Django or NestJS) + Postgres",
+            "when_instead": "only once you outgrow simple data rules or need heavy custom server logic — not on day one"
+          }
+        },
+        {
+          "when": "Just connecting people, no payments yet",
+          "stack": "Supabase (database + logins + storage) + a simple web frontend, with messaging — no payment integration yet",
+          "cost": "free",
+          "why": "If money does not move between users yet, skip the payment complexity entirely; you just need profiles, listings, and a way for the two sides to message.",
+          "alternative": {
+            "stack": "Add Stripe Connect later",
+            "when_instead": "when you turn on paid transactions between users"
+          }
+        }
+      ],
+      "backend_checklist": [
+        "A database with two user roles (e.g. buyer / seller) kept separate",
+        "Login for both sides",
+        "Payouts to sellers (Stripe Connect) — not just taking a payment",
+        "Search and filtering of listings",
+        "Notifications (email at minimum)"
+      ]
+    },
+    {
+      "id": "saas-web-app",
+      "label": "SaaS / web app with logins",
+      "signals": [
+        "People sign up, log in, and see their own data",
+        "You charge a recurring subscription, or plan to",
+        "A dashboard or workspace per user or per company"
+      ],
+      "branch_questions": [
+        "Is each customer an individual, or a company/team with several members?",
+        "Do you charge a recurring subscription, or is it free / one-time?"
+      ],
+      "options": [
+        {
+          "when": "Solo users, get live fast",
+          "stack": "Next.js + Clerk (logins) + Postgres (Supabase) + Stripe Billing",
+          "cost": "freemium",
+          "why": "Clerk handles signup, login, and password resets so you do not build auth yourself; Stripe Billing handles recurring charges (which are different from a one-time payment); Postgres holds each user's data.",
+          "alternative": {
+            "stack": "Supabase Auth instead of Clerk",
+            "when_instead": "if you'd rather keep auth and database under one roof and one less service — Clerk just gives a nicer login experience out of the box"
+          }
+        },
+        {
+          "when": "Teams / companies (multi-tenant)",
+          "stack": "Next.js + Clerk Organizations + Postgres + Stripe Billing + a job runner (Inngest)",
+          "cost": "freemium",
+          "why": "When customers are teams you need multi-tenancy — each company's data walled off and members invited per company. Clerk Organizations gives you that; a job runner handles background work like invite emails, webhooks, and scheduled reports.",
+          "alternative": {
+            "stack": "Row-level isolation in Supabase",
+            "when_instead": "for a lighter setup if team features are simple — full multi-tenant infrastructure is worth it only when companies get large"
+          }
+        },
+        {
+          "when": "Free or one-time, not a subscription",
+          "stack": "Next.js + Clerk + Postgres (skip Stripe Billing; add Stripe Checkout only if you take one-time payments)",
+          "cost": "freemium",
+          "why": "If there's no recurring charge you don't need a billing system; keep auth and data, and add a simple one-time checkout only when you actually sell something.",
+          "alternative": {
+            "stack": "Add Stripe Billing later",
+            "when_instead": "when you introduce paid subscription plans"
+          }
+        }
+      ],
+      "backend_checklist": [
+        "Login, signup, and password reset",
+        "Each customer's data isolated from others (multi-tenancy if teams)",
+        "Subscription billing (recurring is not the same as one-time)",
+        "Background jobs for emails, webhooks, and scheduled work",
+        "An admin view to see and manage your users"
+      ]
+    },
+    {
+      "id": "content-site",
+      "label": "Content site / blog / landing page",
+      "signals": [
+        "Mostly pages people read — articles, marketing, a blog, a landing page",
+        "You (not your users) create the content",
+        "SEO and speed matter; little or no login"
+      ],
+      "branch_questions": [
+        "Do you want to edit content yourself without touching code, or are you fine editing files?",
+        "Is it a few fixed pages, or lots of regularly-updated articles?"
+      ],
+      "options": [
+        {
+          "when": "Edit-without-code, lots of content",
+          "stack": "Astro (or Next.js static) + a headless CMS (Sanity)",
+          "cost": "freemium",
+          "why": "Astro builds fast, SEO-friendly pages instead of a heavy app you don't need. A headless CMS like Sanity lets you edit content in a friendly dashboard without code. There is no app-database here because there is no user data — that's the right call, not a missing piece.",
+          "alternative": {
+            "stack": "WordPress",
+            "when_instead": "if you want the most familiar editing experience and a huge plugin ecosystem, and don't mind a heavier, slower site"
+          }
+        },
+        {
+          "when": "No-code, want it visual",
+          "stack": "Framer or Webflow",
+          "cost": "freemium",
+          "why": "If you want to design and publish visually with zero code, Framer or Webflow get a polished site live in hours. Best when you don't need custom logic.",
+          "alternative": {
+            "stack": "Carrd or a single template",
+            "when_instead": "for one landing page — even simpler and cheaper"
+          }
+        },
+        {
+          "when": "Just a few fixed pages",
+          "stack": "Astro + Tailwind on free hosting (Vercel or Netlify)",
+          "cost": "free",
+          "why": "A handful of pages don't need a CMS at all — write them once and deploy for free.",
+          "alternative": {
+            "stack": "A no-code builder (Framer)",
+            "when_instead": "if you'd rather not touch code even for a few pages"
+          }
+        }
+      ],
+      "backend_checklist": [
+        "Usually NONE — don't add a database to a brochure site",
+        "A CMS only if you'll edit content often",
+        "A contact form via a form service (e.g. Formspree), not a custom backend",
+        "Good SEO setup (meta tags, sitemap)",
+        "A fast, free host (Vercel / Netlify)"
+      ]
+    },
+    {
+      "id": "online-store",
+      "label": "Online store / e-commerce",
+      "signals": [
+        "You sell physical or digital products",
+        "Cart, checkout, inventory, orders, and shipping are involved",
+        "Customers pay you directly for goods"
+      ],
+      "branch_questions": [
+        "Do you want to sell quickly with the least building, or do you need a fully custom storefront?",
+        "Physical products (shipping, inventory) or digital downloads only?"
+      ],
+      "options": [
+        {
+          "when": "Sell fast, least building",
+          "stack": "Shopify",
+          "cost": "paid",
+          "why": "For selling products, Shopify already solves cart, checkout, inventory, tax, shipping, and payment compliance — building those yourself is months of work and real legal risk. Being honest: this one is not a free build (monthly plan plus payment fees), but it is the fastest safe path.",
+          "alternative": {
+            "stack": "Stripe Payment Links + a simple site",
+            "when_instead": "if you sell only a handful of items — you can skip Shopify's subscription and drop in payment links for free"
+          }
+        },
+        {
+          "when": "Custom storefront, still managed commerce",
+          "stack": "Next.js + Shopify headless (Hydrogen) or open-source Medusa + Stripe",
+          "cost": "freemium",
+          "why": "If you need a unique look or custom flow, keep a real commerce engine (Shopify headless or Medusa) doing the hard parts and build your own frontend on top — you don't hand-roll checkout.",
+          "alternative": {
+            "stack": "WooCommerce on WordPress",
+            "when_instead": "if you're already on WordPress and want commerce as a plugin"
+          }
+        },
+        {
+          "when": "Digital products / downloads only",
+          "stack": "Gumroad or Lemon Squeezy",
+          "cost": "freemium",
+          "why": "For digital goods (ebooks, courses, downloads) Gumroad or Lemon Squeezy handle payment, delivery, and even sales tax with no store to build.",
+          "alternative": {
+            "stack": "Stripe + your own download delivery",
+            "when_instead": "if you want full control and lower fees and can accept more setup"
+          }
+        }
+      ],
+      "backend_checklist": [
+        "Product catalog and inventory",
+        "Cart and secure checkout — don't hand-build this",
+        "Payments, tax, and refunds",
+        "Orders and fulfillment / shipping",
+        "Customer accounts (optional if you allow guest checkout)"
+      ]
+    },
+    {
+      "id": "mobile-app",
+      "label": "Mobile app",
+      "signals": [
+        "It runs on phones — an app people download from the App Store or Play Store",
+        "Push notifications, camera, location, or offline use matter",
+        "It is not primarily a website"
+      ],
+      "branch_questions": [
+        "Which devices — iPhone/iPad only, or Android too?",
+        "Does it need heavy phone features (AR, Bluetooth, games, on-device AI), or is it mostly screens plus data?"
+      ],
+      "options": [
+        {
+          "when": "iPhone/iPad only + heavy native features",
+          "stack": "Swift / SwiftUI (native) + Supabase or Firebase for the backend",
+          "cost": "freemium",
+          "why": "If you're Apple-only and need top performance or deep device features (AR, advanced camera), native Swift is the best tool — full access to everything Apple offers. Xcode is free to build with; publishing costs 99 USD per year.",
+          "alternative": {
+            "stack": "Flutter",
+            "when_instead": "if you might add Android later but still want near-native performance"
+          }
+        },
+        {
+          "when": "iPhone + Android, mostly screens + data",
+          "stack": "Expo (React Native) + Supabase or Firebase",
+          "cost": "freemium",
+          "why": "One codebase ships to both stores, and if you or anyone knows web/JavaScript the skills carry straight over. Supabase or Firebase give you data, login, and push notifications free to start.",
+          "alternative": {
+            "stack": "Flutter",
+            "when_instead": "if you want especially smooth, custom animated UI — Flutter excels at polished visuals"
+          }
+        },
+        {
+          "when": "iPhone + Android + slick, animation-heavy UI",
+          "stack": "Flutter + Supabase or Firebase",
+          "cost": "freemium",
+          "why": "Flutter renders beautiful, fast UI from one codebase across both stores — the strongest choice when design polish is the point.",
+          "alternative": {
+            "stack": "Expo (React Native)",
+            "when_instead": "if reusing existing web/JavaScript skills matters more than UI flourish"
+          }
+        }
+      ],
+      "backend_checklist": [
+        "Where your data lives (Supabase / Firebase)",
+        "Login",
+        "Push notifications (real work, plus app-store review)",
+        "Offline / sync if used away from signal",
+        "App Store and Play Store review time — budget for it"
+      ]
+    },
+    {
+      "id": "social-community",
+      "label": "Social / community app",
+      "signals": [
+        "Users post, follow each other, and see a feed",
+        "Profiles, likes, comments, and direct messages",
+        "Content from many users shown to many users"
+      ],
+      "branch_questions": [
+        "Is the heart of it a feed/timeline, or more like group chat/messaging?",
+        "How much media (photos, video) will users upload?"
+      ],
+      "options": [
+        {
+          "when": "Feed / timeline-centric",
+          "stack": "Supabase + a managed feed API (Stream) + Next.js or Expo",
+          "cost": "freemium",
+          "why": "Feeds look simple but are genuinely hard — ranking, fanning a post out to all followers, and scale. A managed feed service (Stream) does that for you; Supabase holds profiles and auth. Plan media storage and moderation from day one.",
+          "alternative": {
+            "stack": "Build the feed yourself on Postgres",
+            "when_instead": "only for a small, simple feed where you control the scale — graduate to a feed service when it grows"
+          }
+        },
+        {
+          "when": "Chat / messaging-centric",
+          "stack": "Supabase + Stream Chat (or Firebase) + your frontend",
+          "cost": "freemium",
+          "why": "Real-time chat — delivery, typing indicators, presence — is a solved problem; Stream Chat or Firebase realtime save you months versus building messaging from scratch.",
+          "alternative": {
+            "stack": "Supabase Realtime",
+            "when_instead": "for lighter chat needs where you want everything in one platform"
+          }
+        },
+        {
+          "when": "Lots of photo / video uploads",
+          "stack": "Add Cloudinary or S3 + a CDN to whichever option above fits",
+          "cost": "freemium",
+          "why": "Heavy media needs proper storage plus a CDN so it loads fast and doesn't blow up your bill; Cloudinary also resizes and optimizes images and video for you.",
+          "alternative": {
+            "stack": "Supabase Storage",
+            "when_instead": "for modest media volumes — simplest if you're already on Supabase"
+          }
+        }
+      ],
+      "backend_checklist": [
+        "Profiles and follow/friend relationships",
+        "The feed or chat engine (consider a managed service)",
+        "Media storage plus a CDN",
+        "Notifications (push and in-app)",
+        "Moderation / reporting — needed sooner than you think"
+      ]
+    },
+    {
+      "id": "internal-tool",
+      "label": "Internal tool / admin dashboard",
+      "signals": [
+        "A tool for your own team, not the public",
+        "Mostly viewing and editing data in tables and forms (CRUD)",
+        "Connects to a database or APIs you already have"
+      ],
+      "branch_questions": [
+        "Is this a quick admin/ops tool over existing data, or a real product that will grow?",
+        "Does it mostly read and edit one database, or stitch together several services?"
+      ],
+      "options": [
+        {
+          "when": "Quick admin / ops tool",
+          "stack": "Retool (or Appsmith / Budibase)",
+          "cost": "freemium",
+          "why": "For an internal CRUD tool, low-code builders like Retool connect to your database and generate tables, forms, and buttons in hours. Hand-building auth, tables, and forms wastes weeks when the users are your own team.",
+          "alternative": {
+            "stack": "Appsmith or Budibase (open-source)",
+            "when_instead": "if you want to self-host for free or avoid per-user pricing as the team grows"
+          }
+        },
+        {
+          "when": "Will grow into a real product",
+          "stack": "Next.js + shadcn/ui + Postgres (or the Refine framework)",
+          "cost": "freemium",
+          "why": "If it will outgrow low-code, a real codebase with a component kit (shadcn) gives you a clean admin UI you fully control; Refine is built specifically for data-heavy internal apps.",
+          "alternative": {
+            "stack": "Stay on Retool longer",
+            "when_instead": "until you hit a real limit — premature custom-building is the classic mistake here"
+          }
+        }
+      ],
+      "backend_checklist": [
+        "Connection to your existing database / APIs",
+        "Login plus who-can-do-what (roles)",
+        "Create, read, update, delete on your data",
+        "An audit trail of who changed what (often needed)",
+        "Kept private — not exposed to the public internet"
+      ]
+    },
+    {
+      "id": "ai-app",
+      "label": "AI / LLM app (chatbot, generator)",
+      "signals": [
+        "The core feature is AI — a chatbot, a generator, a smart assistant",
+        "It calls a language model and shows the result",
+        "It may answer questions over your own documents (RAG)"
+      ],
+      "branch_questions": [
+        "Is it straight chat/generation, or does it answer over your own documents/data (RAG)?",
+        "Will it run quick replies, or long jobs (big documents, batch generation)?"
+      ],
+      "options": [
+        {
+          "when": "Straight chat / generation",
+          "stack": "Next.js + Vercel AI SDK + Claude API (start with the cheaper Haiku model) + Clerk for login",
+          "cost": "freemium",
+          "why": "The Vercel AI SDK handles streaming responses (the typing effect) out of the box; Claude is the model doing the thinking. Start on a smaller, cheaper model (Haiku) and move up only if quality needs it — this keeps your bill under control.",
+          "alternative": {
+            "stack": "A Python backend (FastAPI) + Claude API",
+            "when_instead": "if your AI logic gets complex (multi-step agents, tool use) and you'd rather orchestrate it in Python"
+          }
+        },
+        {
+          "when": "Answers over your own documents (RAG)",
+          "stack": "Next.js + Vercel AI SDK + Claude API + Supabase pgvector for document storage",
+          "cost": "freemium",
+          "why": "To answer over your documents you retrieve the relevant chunks and feed them to the model — that needs a vector store. Supabase pgvector keeps it in the database you already have, so no extra service.",
+          "alternative": {
+            "stack": "Pinecone or a dedicated vector database",
+            "when_instead": "at large scale where a purpose-built vector database outperforms pgvector"
+          }
+        },
+        {
+          "when": "Heavy / long-running jobs",
+          "stack": "Add a job queue (Inngest or Trigger.dev) + a Python (FastAPI) backend for orchestration",
+          "cost": "freemium",
+          "why": "Big documents or batch generation can't finish inside a single web request — a queue runs them in the background and reports progress, so the app stays responsive and you don't hit timeouts.",
+          "alternative": {
+            "stack": "Keep it in serverless functions",
+            "when_instead": "if jobs are short enough to finish within request limits — add the queue only when they aren't"
+          }
+        }
+      ],
+      "backend_checklist": [
+        "The model API (Claude) — and which model, trading cost against quality",
+        "Streaming responses so it feels fast",
+        "Usage metering and cost limits (the bill is easy to forget)",
+        "A vector store if answering over your documents (RAG)",
+        "Background jobs for anything long-running"
+      ]
+    }
+  ]
+}
