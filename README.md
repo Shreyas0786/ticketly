@@ -1,6 +1,6 @@
 # Ticketly
 
-**Turn a messy project idea into a clean, structured backlog — without leaving Claude Code.**
+**Turn a messy project idea into a clean, structured backlog — without leaving Claude Code or Codex.**
 
 Describe what you're building, and Ticketly breaks it into professional tickets: big areas split
 into individual tasks, each with a clear description, acceptance criteria, an effort estimate, and
@@ -33,9 +33,9 @@ describe your idea, you can use it.
 
 ## How it works
 
-Ticketly runs **inside Claude Code, using your existing subscription — no API key, no cost per run.**
-You talk; it does the planning; a small local engine handles the exact, repeatable parts
-(validation and exporting). A full run goes:
+Ticketly runs **inside your AI coding agent — Claude Code or Codex — using your existing
+subscription, no API key, no cost per run.** You talk; it does the planning; a small local engine
+handles the exact, repeatable parts (validation and exporting). A full run goes:
 
 1. **Start** — you give your project (and company, if you want one in the title). It never guesses
    these. **On an existing repo it skips this and reads the code instead** — no company needed.
@@ -53,24 +53,31 @@ You can stop after any step and pick up later, and refine anything in plain Engl
 
 ## Install
 
-Install once, from the Ticketly repo:
+Install once, from the Ticketly repo — pick the agent you use:
 
 ```bash
-./install.sh
+./install.sh claude   # for Claude Code
+./install.sh codex    # for Codex
+./install.sh all      # for both
 ```
 
-That's the whole setup. From then on, `/ticketly` works in **any** folder — even an empty new
-project that doesn't contain this code.
+That's the whole setup. From then on, Ticketly works in **any** folder — even an empty new project
+that doesn't contain this code. Running it with no argument just prints these choices.
+
+The engine is shared, so you can install both and use whichever agent you're in — they don't clash.
 
 **To update later, just `git pull` in this repo.** No reinstall.
 
-> Requirements: [Claude Code](https://claude.com/claude-code) (logged in) and Python 3.10+.
+> Requirements: Python 3.10+, and either [Claude Code](https://claude.com/claude-code) or
+> [Codex](https://developers.openai.com/codex/cli) (logged in).
 
 ## Using it
 
-1. Open **any** folder in Claude Code — a blank one to plan from scratch, or an existing repo to
-   plan the work that's left.
-2. Type **`/ticketly`**.
+1. Open **any** folder — a blank one to plan from scratch, or an existing repo to plan the work
+   that's left.
+2. Start Ticketly:
+   - **In Claude Code** — type **`/ticketly`**.
+   - **In Codex** — run `codex`, then say **"use Ticketly"**.
 3. Describe your project and answer its questions — or, on an existing repo, just confirm what it
    read from the code.
 
@@ -93,7 +100,8 @@ python3 -m ticketly.render backlogs/<project>.json --format all --out-dir build/
 - Runs **entirely on your machine** — no network calls, no telemetry, nothing sent anywhere.
 - Uses **no API keys** and never asks for secrets.
 - Only reads/writes the folder you run it in. `install.sh` just installs a local Python package
-  and links the skill — no `sudo`, no remote scripts.
+  and wires up your agent (the Claude Code skill and/or the Codex pointer) — no `sudo`, no remote
+  scripts.
 
 ---
 
