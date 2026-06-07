@@ -190,8 +190,11 @@ def render_markdown(data: dict[str, Any]) -> str:
     tickets = data["tickets"]
     n_tasks = sum(1 for t in tickets if t["type"] == "Task")
     total_points = sum(t["effort"] for t in tickets if t["type"] == "Task")
+    # Company is optional (omitted on existing-project runs); title by project alone then.
+    company = data.get("company")
+    title = f"{company} — {data['project']} backlog" if company else f"{data['project']} backlog"
     lines = [
-        f"# {data['company']} — {data['project']} backlog",
+        f"# {title}",
         "",
         f"{_count(len(_epics(tickets)), 'epic')} · "
         f"{_count(n_tasks, 'ticket')} · "

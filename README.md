@@ -15,6 +15,9 @@ describe your idea, you can use it.
 ## What it does
 
 - **Plans the whole project** — turns your idea or spec into epics (big areas) broken into tickets.
+- **Works on existing codebases too** — point it at a repo and it reads the code, infers the stack,
+  and plans the work that's *left* (TODOs, half-built features, missing tests) instead of starting
+  from a blank page. No company name needed for these — the backlog is titled by your project.
 - **Asks, never guesses** — if something isn't decided (which database? which host?), it flags the
   ticket for clarification instead of making something up. Nothing is invented.
 - **Matches a real PM's style** — short, clear titles; one-line descriptions; testable acceptance
@@ -29,8 +32,10 @@ Ticketly runs **inside Claude Code, using your existing subscription — no API 
 You talk; it does the planning; a small local engine handles the exact, repeatable parts
 (validation and exporting). A full run goes:
 
-1. **Start** — you give your company and project. (It never guesses these.)
-2. **Discuss** — you talk through what you're building and your tech stack, conversationally.
+1. **Start** — you give your project (and company, if you want one in the title). It never guesses
+   these. **On an existing repo it skips this and reads the code instead** — no company needed.
+2. **Discuss** — you talk through what you're building and your tech stack, conversationally. (For
+   an existing repo it drafts this from the code and just asks you to confirm.)
 3. **Areas** — it proposes a few main areas for your project and you confirm or tweak them.
 4. **Scope** — you pick a full backlog or a lean MVP.
 5. **Generate** — it writes the tickets, checks them for problems, and exports the results into
@@ -56,9 +61,11 @@ project that doesn't contain this code.
 
 ## Using it
 
-1. Open **any** folder in Claude Code — your project, even an empty one.
+1. Open **any** folder in Claude Code — a blank one to plan from scratch, or an existing repo to
+   plan the work that's left.
 2. Type **`/ticketly`**.
-3. Describe your project and answer its questions.
+3. Describe your project and answer its questions — or, on an existing repo, just confirm what it
+   read from the code.
 
 It writes everything into your current folder:
 
