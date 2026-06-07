@@ -2,15 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ticketly.dev/schema/ticket.schema.json",
   "title": "Ticketly Backlog",
-  "description": "A generated backlog: a company, a project, and its epics and tickets. Single source of truth for every Ticketly renderer and validator.",
+  "description": "A generated backlog: an optional company, a project, and its epics and tickets. Single source of truth for every Ticketly renderer and validator.",
   "type": "object",
-  "required": ["company", "project", "tickets"],
+  "required": ["project", "tickets"],
   "additionalProperties": false,
   "properties": {
     "company": {
       "type": "string",
       "minLength": 1,
-      "description": "Company / organization this backlog is for. The user MUST supply this; Ticketly never invents it. Use the real name the user provides."
+      "description": "Company / organization this backlog is for. OPTIONAL. When present it must be the real name the user provides — Ticketly never invents it. Omit it entirely on an existing-project run (where asking for a company is awkward); the backlog is then titled by its project name alone."
     },
     "project": {
       "type": "string",

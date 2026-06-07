@@ -2,15 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ticketly.dev/schema/profile.schema.json",
   "title": "Ticketly Project Profile",
-  "description": "Per-project context Ticketly gathers before generating a backlog: the company, the project, the user-supplied tech stack and architecture, and the agreed ticket-ID prefix scheme. Everything here is supplied or confirmed by the user; Ticketly never invents a stack or scope.",
+  "description": "Per-project context Ticketly gathers before generating a backlog: an optional company, the project, the user-supplied tech stack and architecture, and the agreed ticket-ID prefix scheme. Everything here is supplied or confirmed by the user; Ticketly never invents a stack or scope.",
   "type": "object",
-  "required": ["company", "project", "stack", "architecture", "prefixes"],
+  "required": ["project", "stack", "architecture", "prefixes"],
   "additionalProperties": false,
   "properties": {
     "company": {
       "type": "string",
       "minLength": 1,
-      "description": "Company / organization this project is for. The user MUST supply this; Ticketly never invents it."
+      "description": "Company / organization this project is for. OPTIONAL. When present it must be supplied by the user — Ticketly never invents it. Omit it on an existing-project run where asking for a company is awkward."
     },
     "project": {
       "type": "string",

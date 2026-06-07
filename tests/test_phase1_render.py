@@ -49,6 +49,19 @@ def test_markdown_has_title_header(backlog):
     assert md.startswith(f"# {backlog['company']} — {backlog['project']} backlog")
 
 
+def test_markdown_title_drops_company_when_absent(backlog):
+    # existing-project backlogs omit company; the title is then project-only.
+    no_company = {k: v for k, v in backlog.items() if k != "company"}
+    md = render.render_markdown(no_company)
+    assert md.startswith(f"# {backlog['project']} backlog")
+    assert " — " not in md.splitlines()[0]
+
+
+def test_markdown_title_keeps_company_when_present(backlog):
+    md = render.render_markdown(backlog)
+    assert md.splitlines()[0] == f"# {backlog['company']} — {backlog['project']} backlog"
+
+
 def test_markdown_has_an_epic_section_per_epic(backlog):
     md = render.render_markdown(backlog)
     epics = [t for t in backlog["tickets"] if t["type"] == "Epic"]

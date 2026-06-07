@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = ROOT / "profile" / "profile.schema.json"
 EXAMPLE_PATH = ROOT / "examples" / "sample-profile.json"
 
-REQUIRED_TOP = {"company", "project", "stack", "architecture", "prefixes"}
+REQUIRED_TOP = {"project", "stack", "architecture", "prefixes"}  # company is optional
 STACK_LAYERS = {"frontend", "backend", "database", "infra", "other"}
 
 
@@ -71,8 +71,14 @@ def test_example_prefixes_are_unique(example):
     assert len(prefixes) == len(set(prefixes))
 
 
+def test_profile_without_company_is_valid(schema, example):
+    # existing-project runs omit company entirely; that must validate.
+    ok = copy.deepcopy(example)
+    ok.pop("company")
+    Draft202012Validator(schema).validate(ok)  # raises if company were still required
+
+
 @pytest.mark.parametrize("mutate", [
-    lambda p: p.pop("company"),                       # missing required
     lambda p: p.pop("prefixes"),                      # missing required
     lambda p: p.update(prefixes=[]),                  # prefixes must be non-empty
     lambda p: p["prefixes"].append({"prefix": "api", "domain": "x"}),  # lowercase prefix

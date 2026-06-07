@@ -76,7 +76,22 @@ A project moves through these stages. The user can stop after any of them and re
 
 ### 1. Start a project
 
-Every folder gets its own profile. Ask the user for the two things Ticketly never invents:
+**First, read the folder, then decide.** Don't classify on a filename alone — look at what's
+actually there, then pick the mode:
+
+- **New / greenfield** — the folder is empty, or holds only docs/specs (a `.md`/`.txt`/`.pdf`
+  requirements or README, planning notes). **Docs alone are not an existing project** — a spec is
+  the normal greenfield input. Follow step 1 below, then Discuss → Distill (steps 2–3).
+- **Existing project** — the folder contains real **code**: a manifest (`package.json`,
+  `requirements.txt`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `pom.xml`, …) **or** an actual
+  source tree (a `src/`, modules, components — architecture you can read). Use **step 1b** instead —
+  scan the repo rather than interrogating the user, and skip the company question.
+- **Unsure / mixed** (e.g. a lone spec next to a stray script) — don't guess. Ask one plain
+  question: *"Is this a fresh start, or an existing codebase you'd like tickets for?"* and let the
+  answer pick the mode.
+
+Every folder gets its own profile. For a **new** project, ask the user for the two things Ticketly
+never invents:
 
 - **Company / organization** — whoever the work is for. If it's a personal or unnamed project,
   that's fine — they can use their own name or the project name.
@@ -85,6 +100,45 @@ Every folder gets its own profile. Ask the user for the two things Ticketly neve
 Ask plainly and wait for their answer. **Do not pre-fill or suggest a real company name** (from
 their email, account, git, or a spec). Use "Demo Company / Demo Project" only in this guide's
 examples, never as a real value.
+
+### 1b. Existing project — scan, don't interrogate
+
+When the current folder already has code, don't run the greenfield interview. Read the repo and
+let it tell you what the project is, then plan **what's next** — not a re-description of what's
+already built.
+
+**Skip the company question entirely.** On an existing project, asking "what company is this for?"
+is awkward and adds nothing — `company` is now optional, so leave it out. The backlog is titled by
+its project name alone (`# <Project> backlog`). Take the project name from the repo (its folder
+name, or the `name` field in a manifest) and confirm it in one line — that's the only identity
+question. **Never scrape a *company* name** from `package.json`/`pyproject.toml` author fields,
+`LICENSE`, git config, or the repo name; the never-invent rule applies harder here, not softer.
+
+1. **Auto-draft the profile by reading, not guessing.** Reading the repo is not inventing:
+   - `stack` — from the manifests and config: dependencies, language/runtime, framework, database
+     drivers, infra files (`Dockerfile`, CI workflows, `fly.toml`, etc.). Record only what the
+     files actually show.
+   - `architecture.components` — from the directory layout and entrypoints (the web app, the API
+     service, the worker, the shared package, …), in plain names.
+   - `prefixes` — suggest from the house-style `prefix_vocab`, filtered to the areas the code
+     actually has.
+2. **Confirm the drafted profile with the user — in plain language.** Show what you inferred ("Looks
+   like a Next.js web app + a FastAPI backend on Postgres — that right?") and let them correct it
+   before you save. Anything the code can't tell you (intended scope, priorities, what's
+   half-finished on purpose) → **ask, don't guess.** Then save and validate the profile exactly as
+   in step 3 (`python3 -m ticketly.profile profiles/<slug>.json`).
+3. **Find the forward-looking work.** Scan for real signals of what's left to do, and surface what
+   you found before writing tickets:
+   - `TODO` / `FIXME` / `HACK` / `XXX` markers in the code.
+   - Stubbed or empty functions, `NotImplementedError`, placeholder/`pass`-only bodies, empty UI
+     screens.
+   - Modules or features with no corresponding tests; missing docs for a public surface.
+   - Half-wired features (a route with no handler, a button with no action, a config flag never read).
+4. **Generate tickets for what's next**, not a catalogue of what exists. Each ticket is real
+   forward work: finish the half-built feature, add the missing tests, wire the stub, document the
+   public API. Then continue with **step 4 (Choose the scope)** onward — for an existing project,
+   frame the scope choice as *"just the TODOs and gaps"* vs *"everything I'd plan next"* — then
+   generate, check integrity, and render exactly as in steps 5–7.
 
 ### 2. Discuss (free-form)
 

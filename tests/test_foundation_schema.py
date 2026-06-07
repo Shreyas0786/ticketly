@@ -49,8 +49,16 @@ def test_schema_is_itself_valid(schema):
     validator_for(schema).check_schema(schema)
 
 
-def test_top_level_requires_company_project_and_tickets(schema):
-    assert set(schema["required"]) == {"company", "project", "tickets"}
+def test_top_level_requires_project_and_tickets(schema):
+    # company is OPTIONAL (omitted on existing-project runs); project + tickets are required.
+    assert set(schema["required"]) == {"project", "tickets"}
+
+
+def test_company_is_an_optional_string_property(schema):
+    # still a defined, validated field — just not required.
+    assert "company" not in schema["required"]
+    assert schema["properties"]["company"]["type"] == "string"
+    assert schema["properties"]["company"]["minLength"] == 1
 
 
 def test_ticket_has_exactly_core_plus_optional_fields(ticket_props):
