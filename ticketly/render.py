@@ -49,6 +49,7 @@ CSV_COLUMNS = [
     "description",
     "acceptance_criteria",
     "needs_clarification",
+    "assignee",
 ]
 
 _LIST_FIELDS = {"dependencies", "acceptance_criteria"}
