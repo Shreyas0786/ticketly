@@ -14,6 +14,7 @@ venv/
 # Generated output
 out/
 build/
+dist/
 *.local.*
 
 # Runtime project data written by the /ticketly skill (examples/ stays tracked)
