@@ -17,6 +17,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Shreyas0786/ticketly"
+Changelog = "https://github.com/Shreyas0786/ticketly/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "PyYAML>=6.0", "build>=1.0"]
 
