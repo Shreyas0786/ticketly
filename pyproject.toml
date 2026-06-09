@@ -4,17 +4,42 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ticketly"
-version = "0.1.0"
-description = "Turn project requirements into clean, structured PM-quality tickets, inside Claude Code."
+version = "1.0.0"
+description = "Turn project requirements into clean, structured PM-quality tickets, inside Claude Code or Codex."
+readme = "README.md"
 requires-python = ">=3.10"
+authors = [{ name = "Shreyas Sonwane" }]
+license = { file = "LICENSE" }
 dependencies = ["jsonschema>=4.20"]
+classifiers = [
+    "License :: Other/Proprietary License",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "PyYAML>=6.0"]
+dev = ["pytest>=8.0", "PyYAML>=6.0", "build>=1.0"]
 
-# The package is `ticketly`; its sibling data dirs (schema/, house-style/,
-# examples/, profile/) are resolved at runtime relative to the package via
-# __file__, so an editable install (`pip install -e .`) keeps them reachable
-# from any working directory.
+[project.scripts]
+# The single front door. Installed on PATH, so it runs under the interpreter
+# Ticketly was installed into — robust no matter which python3 a caller resolves.
+ticketly = "ticketly.cli:main"
+
+[tool.pytest.ini_options]
+markers = ["slow: marks tests that build artifacts or are otherwise slow"]
+
 [tool.setuptools]
 packages = ["ticketly"]
+
+# Bundled data ships inside the package (under ticketly/data/) so it travels in a
+# built wheel and is reachable via __file__ from any working directory.
+[tool.setuptools.package-data]
+ticketly = [
+    "data/schema/*",
+    "data/profile/*",
+    "data/house-style/*",
+    "data/examples/*",
+    "data/archetypes/*",
+    "data/codex/*",
+    "data/claude/*",
+]

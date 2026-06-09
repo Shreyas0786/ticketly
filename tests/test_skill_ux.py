@@ -62,12 +62,11 @@ def test_scope_choice_comes_before_generation():
     assert SKILL_LOWER.index("choose the scope") < SKILL_LOWER.index("generate the backlog")
 
 
-# --- symlink install -----------------------------------------------------
+# --- dev install delegates to the CLI ------------------------------------
 
-def test_install_symlinks_the_skill():
-    assert "ln -s" in INSTALL
-    assert "cp " not in INSTALL  # no longer a copy
-    assert "git pull" in INSTALL  # documents the update path
+def test_install_delegates_to_the_ticketly_command():
+    assert "pip install -e" in INSTALL              # editable engine for contributors
+    assert 'ticketly install "$MODE"' in INSTALL    # wiring is the CLI's job, not the script's
 
 
 def test_skill_steps_are_numbered_without_collision():

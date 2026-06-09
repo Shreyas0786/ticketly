@@ -14,8 +14,8 @@ from jsonschema import Draft202012Validator
 from jsonschema.validators import validator_for
 
 ROOT = Path(__file__).resolve().parent.parent
-SCHEMA_PATH = ROOT / "profile" / "profile.schema.json"
-EXAMPLE_PATH = ROOT / "examples" / "sample-profile.json"
+SCHEMA_PATH = ROOT / "ticketly" / "data" / "profile" / "profile.schema.json"
+EXAMPLE_PATH = ROOT / "ticketly" / "data" / "examples" / "sample-profile.json"
 
 REQUIRED_TOP = {"project", "stack", "architecture", "prefixes"}  # company is optional
 STACK_LAYERS = {"frontend", "backend", "database", "infra", "other"}

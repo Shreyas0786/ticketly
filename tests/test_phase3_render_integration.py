@@ -13,7 +13,7 @@ import pytest
 from ticketly import render
 
 ROOT = Path(__file__).resolve().parent.parent
-CLEAN = ROOT / "examples" / "sample-release-backlog.json"
+CLEAN = ROOT / "ticketly" / "data" / "examples" / "sample-release-backlog.json"
 
 
 def _epic(tid="EPIC-API", **kw):

@@ -1,19 +1,20 @@
 """Phase 3 structural tests for the Codex port.
 
 The Codex port reuses the shared Python engine and re-expresses the /ticketly
-flow as an AGENTS.md that Codex/GPT follows, plus an idempotent installer mode.
-These tests pin the operator-facing artifacts so a careless edit fails loudly:
-the Codex docs exist and carry their load-bearing instructions, their relative
-links resolve to real files, the installer offers all three modes without losing
-the Claude path, and the README documents the Codex install + trigger.
+flow as an AGENTS.md that Codex/GPT follows, plus the `ticketly install codex`
+wiring. These tests pin the operator-facing artifacts so a careless edit fails
+loudly: the Codex docs exist and carry their load-bearing instructions, their
+relative links resolve to real bundled files, the dev install script offers all
+three modes, and the README documents the Codex install + trigger.
 """
 
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CODEX_AGENTS = ROOT / "codex" / "AGENTS.md"
-CODEX_POINTER = ROOT / "codex" / "agents-pointer.md"
+DATA = ROOT / "ticketly" / "data"  # ENGINE = the bundled-data dir
+CODEX_AGENTS = ROOT / "ticketly" / "data" / "codex" / "AGENTS.md"
+CODEX_POINTER = ROOT / "ticketly" / "data" / "codex" / "agents-pointer.md"
 INSTALL = ROOT / "install.sh"
 README = ROOT / "README.md"
 
@@ -25,29 +26,29 @@ def test_codex_agents_exists():
 
 
 def test_codex_agents_finds_engine_via_home():
-    assert "python3 -m ticketly.home" in CODEX_AGENTS.read_text()
+    assert "ticketly home" in CODEX_AGENTS.read_text()
 
 
 def test_codex_agents_points_at_the_canonical_skill():
-    # the thin adapter must defer to SKILL.md as the single workflow source
-    assert ".claude/skills/ticketly/SKILL.md" in CODEX_AGENTS.read_text()
+    # the thin adapter must defer to the bundled SKILL.md as the single workflow source
+    assert "ENGINE/claude/SKILL.md" in CODEX_AGENTS.read_text()
 
 
 def test_codex_agents_restates_never_invent():
     assert "Never invent" in CODEX_AGENTS.read_text()
 
 
-def test_codex_agents_references_engine_modules():
+def test_codex_agents_references_engine_commands():
     text = CODEX_AGENTS.read_text()
-    for mod in ("profile", "validate", "render"):
-        assert f"python3 -m ticketly.{mod}" in text
+    for cmd in ("profile", "validate", "render"):
+        assert f"ticketly {cmd}" in text
 
 
 def test_codex_agents_relative_links_resolve():
-    # every engine-relative path the doc names must point at a real file
+    # every engine-relative path the doc names must point at a real bundled file
     text = CODEX_AGENTS.read_text()
     for rel in re.findall(r"ENGINE/([A-Za-z0-9_./-]+\.(?:md|json))", text):
-        assert (ROOT / rel).is_file(), f"codex/AGENTS.md links missing file: {rel}"
+        assert (DATA / rel).is_file(), f"codex/AGENTS.md links missing file: {rel}"
 
 
 # --- the pointer installed into ~/.codex/AGENTS.md -----------------------
@@ -58,39 +59,22 @@ def test_pointer_exists():
 
 def test_pointer_is_on_demand_and_points_back():
     text = CODEX_POINTER.read_text()
-    assert "python3 -m ticketly.home" in text
+    assert "ticketly home" in text
     assert "ENGINE/codex/AGENTS.md" in text
 
 
-# --- the installer: three modes, idempotent, Claude path intact ----------
+# --- the dev install script: three modes, delegates to `ticketly install` -
 
 def test_install_offers_all_three_modes():
-    text = INSTALL.read_text()
-    for mode in ("claude)", "codex)", "all)"):
-        assert mode in text, f"install.sh missing mode: {mode}"
+    assert "claude|codex|all)" in INSTALL.read_text(), "install.sh must accept all three modes"
 
 
 def test_install_keeps_the_shared_engine_step():
     assert "pip install -e" in INSTALL.read_text()
 
 
-def test_install_keeps_the_claude_skill_path():
-    text = INSTALL.read_text()
-    assert ".claude/skills/ticketly/SKILL.md" in text
-    assert "skills/ticketly" in text
-
-
-def test_install_wires_the_codex_pointer():
-    text = INSTALL.read_text()
-    assert ".codex/AGENTS.md" in text
-    assert "codex/agents-pointer.md" in text
-
-
-def test_install_codex_block_is_idempotent_by_markers():
-    # delimited markers are what make re-running safe; both must be present
-    text = INSTALL.read_text()
-    assert ">>> ticketly (codex) >>>" in text
-    assert "<<< ticketly (codex) <<<" in text
+def test_install_delegates_wiring_to_the_ticketly_command():
+    assert 'ticketly install "$MODE"' in INSTALL.read_text()
 
 
 def test_install_has_a_no_arg_menu():
@@ -102,11 +86,9 @@ def test_install_has_a_no_arg_menu():
 
 # --- README documents the Codex path -------------------------------------
 
-def test_readme_documents_all_three_install_modes():
+def test_readme_documents_codex_install():
     text = README.read_text()
-    assert "./install.sh claude" in text
-    assert "./install.sh codex" in text
-    assert "./install.sh all" in text
+    assert "ticketly install codex" in text or "ticketly install all" in text
 
 
 def test_readme_documents_the_codex_trigger():

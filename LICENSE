@@ -1,20 +1,33 @@
-Ticketly — Proprietary License
+Ticketly License
 Copyright (c) 2026 Shreyas Sonwane. All rights reserved.
 
-This software and its source code are proprietary and confidential.
+1. Grant of use.
+   You are granted a free, non-exclusive, non-transferable right to install and
+   use Ticketly ("the Software") for your own personal or internal business
+   purposes, at no charge.
 
-No permission is granted to any person to use, copy, modify, merge, publish,
-distribute, sublicense, sell, or create derivative works of this software, in
-whole or in part, by any means, without the prior written permission of the
-copyright holder.
+2. Restrictions.
+   You may NOT, without the prior written permission of the copyright holder:
+   (a) copy, reproduce, or republish the Software or its source code, except for
+       the local copy created by normal installation and use;
+   (b) modify, adapt, translate, or create derivative works of the Software;
+   (c) distribute, sublicense, rent, lease, sell, resell, or otherwise make the
+       Software available to any third party; or
+   (d) remove or alter any copyright, license, or attribution notices.
 
-Unauthorized use, reproduction, or distribution of this software, or any
-portion of it, is strictly prohibited.
+3. Ownership.
+   The Software is licensed, not sold. All title, ownership, and intellectual
+   property rights in and to the Software remain with the copyright holder.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+4. Termination.
+   This license terminates automatically if you breach any of its terms. On
+   termination you must stop using and delete all copies of the Software.
+
+5. No warranty.
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
