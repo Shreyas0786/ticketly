@@ -53,39 +53,36 @@ You can stop after any step and pick up later, and refine anything in plain Engl
 
 ## Install
 
-Install once, from the Ticketly repo — pick the agent you use:
+Install Ticketly once from PyPI, then wire up the agent you use. **pipx** is recommended — it keeps
+Ticketly isolated and always on your PATH, so it works no matter which Python your agent runs:
 
 ```bash
-./install.sh claude   # for Claude Code
-./install.sh codex    # for Codex
-./install.sh all      # for both
+pipx install ticketly        # (or: pip install ticketly)
+ticketly install all         # wire up Claude Code and/or Codex
 ```
 
-That's the whole setup. From then on, Ticketly works in **any** folder — even an empty new project
-that doesn't contain this code. Running it with no argument just prints these choices.
+Pick just one agent if you prefer:
 
-The engine is shared, so you can install both and use whichever agent you're in — they don't clash.
+```bash
+ticketly install claude      # Claude Code (the /ticketly skill)
+ticketly install codex       # Codex ("use Ticketly" in any session)
+ticketly install all         # both
+```
+
+That's the whole setup. From then on, Ticketly works in **any** folder — even an empty new project.
+Install both agents if you like; they don't clash.
 
 > Requirements: Python 3.10+, and either [Claude Code](https://claude.com/claude-code) or
-> [Codex](https://developers.openai.com/codex/cli) (logged in).
+> [Codex](https://developers.openai.com/codex/cli) (logged in). **No API key.**
 
 ## Updating
 
-The engine is an editable install and the skill is symlinked back to this repo, so updating is just:
-
 ```bash
-git pull
+pipx upgrade ticketly         # or: pip install -U ticketly
 ```
 
-That's everything — no reinstall. The only one-time exception is **adding Codex later** (a new front
-door that wasn't wired up before):
-
-```bash
-git pull
-./install.sh codex     # or: ./install.sh all
-```
-
-After that, future updates are `git pull` again.
+That's it — the bundled skill and Codex pointer update with the package. (Re-run
+`ticketly install all` only if you want to refresh the agent front-doors immediately.)
 
 ## Using it
 
@@ -108,17 +105,31 @@ It writes everything into your current folder:
 You can re-export a backlog any time:
 
 ```bash
-python3 -m ticketly.render backlogs/<project>.json --format all --out-dir build/
+ticketly render backlogs/<project>.json --format all --out-dir build/
 ```
+
+## Starting a project over
+
+Requirements changed and you want a clean slate? Reset a project's generated files, then re-run
+`/ticketly` with the new requirements:
+
+```bash
+ticketly reset <project>      # asks before deleting; --all resets every project here
+```
+
+Reset is deliberately careful: it only ever removes Ticketly's own generated files for that project
+(`profiles/<project>.json`, `backlogs/<project>.json`, and `build/<project>.*`), confirms each one
+with you first, never touches a file it can't verify as Ticketly's, and never reaches outside the
+current folder. Your code and other files are never touched.
 
 ## Safe by design
 
 - Runs **entirely on your machine** — no network calls, no telemetry, nothing sent anywhere.
-- Uses **no API keys** and never asks for secrets.
-- Only reads/writes the folder you run it in. `install.sh` just installs a local Python package
-  and wires up your agent (the Claude Code skill and/or the Codex pointer) — no `sudo`, no remote
-  scripts.
+- Uses **no API key** and never asks for secrets.
+- Only reads/writes the folder you run it in. `ticketly install` just copies the Claude Code skill
+  and/or appends a Codex pointer into your agent's config — no `sudo`, no remote scripts.
 
 ---
 
-_Development: run the test suite with `python3 -m pytest -q`._
+_Development: from a repo checkout, `./install.sh all` does an editable install and wires both
+agents. Run the test suite with `python3 -m pytest -q`._

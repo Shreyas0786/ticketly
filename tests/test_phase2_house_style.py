@@ -16,9 +16,10 @@ from jsonschema import Draft202012Validator
 from jsonschema.validators import validator_for
 
 ROOT = Path(__file__).resolve().parent.parent
-HS_SCHEMA = ROOT / "house-style" / "house-style.schema.json"
-HS_DEFAULT = ROOT / "house-style" / "default.json"
-TICKET_SCHEMA = ROOT / "schema" / "ticket.schema.json"
+DATA = ROOT / "ticketly" / "data"  # ENGINE = the bundled-data dir; few_shot paths are relative to it
+HS_SCHEMA = ROOT / "ticketly" / "data" / "house-style" / "house-style.schema.json"
+HS_DEFAULT = ROOT / "ticketly" / "data" / "house-style" / "default.json"
+TICKET_SCHEMA = ROOT / "ticketly" / "data" / "schema" / "ticket.schema.json"
 
 FIBONACCI_NONZERO = {"1", "2", "3", "5", "8", "13"}
 
@@ -70,14 +71,14 @@ def test_tone_has_all_three_fields(default):
 
 
 def test_few_shot_backlog_exists_and_validates(default):
-    backlog_path = ROOT / default["few_shot"]["backlog"]
+    backlog_path = DATA / default["few_shot"]["backlog"]
     assert backlog_path.is_file(), f"missing few-shot backlog {backlog_path}"
     ticket_schema = json.loads(TICKET_SCHEMA.read_text())
     Draft202012Validator(ticket_schema).validate(json.loads(backlog_path.read_text()))
 
 
 def test_few_shot_backlog_uses_placeholder_company(default):
-    backlog = json.loads((ROOT / default["few_shot"]["backlog"]).read_text())
+    backlog = json.loads((DATA / default["few_shot"]["backlog"]).read_text())
     assert backlog["company"] == "Demo Company"
     assert backlog["project"] == "Demo Project"
 
@@ -85,7 +86,7 @@ def test_few_shot_backlog_uses_placeholder_company(default):
 def test_few_shot_uses_house_vocab_prefixes(default):
     """Every ticket ID prefix in the few-shot backlog is a known vocab prefix."""
     vocab = {p["prefix"] for p in default["prefix_vocab"]}
-    backlog = json.loads((ROOT / default["few_shot"]["backlog"]).read_text())
+    backlog = json.loads((DATA / default["few_shot"]["backlog"]).read_text())
     for t in backlog["tickets"]:
         prefix = t["id"].split("-")[1] if t["id"].startswith("EPIC-") else t["id"].split("-")[0]
         assert prefix in vocab, f"{t['id']} uses prefix {prefix} not in the vocab"

@@ -91,5 +91,5 @@ def test_existing_path_reuses_validate_and_render_pipeline():
     # it must rejoin the normal scope -> generate -> validate -> render flow,
     # not invent a separate output path.
     assert "step 4 (choose the scope)" in SKILL_LOWER
-    assert "python3 -m ticketly.profile" in SKILL
-    assert "python3 -m ticketly.render" in SKILL
+    assert "ticketly profile" in SKILL
+    assert "ticketly render" in SKILL

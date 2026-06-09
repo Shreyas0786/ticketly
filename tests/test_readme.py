@@ -20,14 +20,20 @@ def test_has_guide_sections():
 
 
 def test_documents_install_and_invocation():
-    assert "./install.sh" in README
+    assert "pipx install ticketly" in README or "pip install ticketly" in README
+    assert "ticketly install" in README   # wiring up an agent
     assert "/ticketly" in README
 
 
-def test_usage_commands_reference_real_modules():
-    # any `python3 -m ticketly.<mod>` mentioned must be an importable module file
-    for mod in set(re.findall(r"python3 -m ticketly\.(\w+)", README)):
-        assert (ROOT / "ticketly" / f"{mod}.py").is_file(), f"README references missing ticketly.{mod}"
+def test_usage_commands_reference_real_things():
+    # every `ticketly <word>` the README names must be a real engine module or CLI subcommand
+    subcommands = {"home", "install", "reset", "render", "validate", "profile", "archetypes"}
+    # `(?<![/\w])` skips the `/ticketly` slash command and prose, matching only CLI usage.
+    for word in set(re.findall(r"(?<![/\w])ticketly (\w+)", README)):
+        if word == "install":  # `ticketly install` is followed by an agent name, skip the agent
+            continue
+        is_module = (ROOT / "ticketly" / f"{word}.py").is_file()
+        assert word in subcommands or is_module, f"README references unknown `ticketly {word}`"
 
 
 def test_no_dev_status_cruft():

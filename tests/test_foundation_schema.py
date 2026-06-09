@@ -14,8 +14,8 @@ from jsonschema import Draft202012Validator
 from jsonschema.validators import validator_for
 
 ROOT = Path(__file__).resolve().parent.parent
-SCHEMA_PATH = ROOT / "schema" / "ticket.schema.json"
-EXAMPLE_PATH = ROOT / "examples" / "sample-release-backlog.json"
+SCHEMA_PATH = ROOT / "ticketly" / "data" / "schema" / "ticket.schema.json"
+EXAMPLE_PATH = ROOT / "ticketly" / "data" / "examples" / "sample-release-backlog.json"
 
 CORE_FIELDS = {
     "id", "title", "type", "parent", "status",

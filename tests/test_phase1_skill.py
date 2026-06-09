@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
+DATA = ROOT / "ticketly" / "data"  # ENGINE = the bundled-data dir
 SKILL_PATH = ROOT / ".claude" / "skills" / "ticketly" / "SKILL.md"
 
 
@@ -43,11 +44,11 @@ def test_references_real_engine_data(text):
     for rel in ["schema/ticket.schema.json", "house-style/default.json",
                 "examples/house-style-backlog.json"]:
         assert rel in text, f"skill should reference {rel}"
-        assert (ROOT / rel).is_file(), f"skill references missing file {rel}"
+        assert (DATA / rel).is_file(), f"skill references missing file {rel}"
 
 
 def test_invokes_the_renderer_module(text):
-    assert "python3 -m ticketly.render" in text
+    assert "ticketly render" in text
 
 
 def test_encodes_locked_conventions(text):

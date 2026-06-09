@@ -16,7 +16,7 @@ import pytest
 from ticketly import render
 
 ROOT = Path(__file__).resolve().parent.parent
-BACKLOG = ROOT / "examples" / "sample-release-backlog.json"
+BACKLOG = ROOT / "ticketly" / "data" / "examples" / "sample-release-backlog.json"
 
 
 @pytest.fixture(scope="module")

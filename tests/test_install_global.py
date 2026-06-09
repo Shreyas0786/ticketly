@@ -56,7 +56,7 @@ def test_home_cli_prints_data_root(capsys):
 
 def test_profile_validator_accepts_sample():
     from ticketly import profile
-    data = json.loads((ROOT / "examples" / "sample-profile.json").read_text())
+    data = json.loads((ROOT / "ticketly" / "data" / "examples" / "sample-profile.json").read_text())
     profile.validate_profile(data)  # must not raise
 
 
@@ -69,16 +69,15 @@ def test_profile_validator_rejects_broken(tmp_path):
 
 def test_profile_validator_cli_accepts_sample():
     from ticketly import profile
-    assert profile.main([str(ROOT / "examples" / "sample-profile.json")]) == 0
+    assert profile.main([str(ROOT / "ticketly" / "data" / "examples" / "sample-profile.json")]) == 0
 
 
 # --- install script ------------------------------------------------------
 
 def test_install_script_exists_and_is_structured():
     text = (ROOT / "install.sh").read_text()
-    assert "pip install -e" in text
-    assert ".claude/skills/ticketly/SKILL.md" in text
-    assert "skills/ticketly" in text  # copies skill to the user skills dir
+    assert "pip install -e" in text                 # editable engine install for contributors
+    assert 'ticketly install "$MODE"' in text       # delegates agent wiring to the CLI
 
 
 # --- the headline guarantee: works from a folder without the codebase ----
@@ -117,11 +116,11 @@ def test_render_runs_from_a_foreign_directory(tmp_path):
 
 def test_skill_uses_engine_locator_not_cwd_paths():
     text = SKILL.read_text()
-    assert "python3 -m ticketly.home" in text
+    assert "ticketly home" in text
     assert "ENGINE" in text
     # writes go to the current folder
     assert "./profiles/" in text and "./backlogs/" in text and "./build/" in text
 
 
-def test_skill_validates_profile_via_module():
-    assert "python3 -m ticketly.profile" in SKILL.read_text()
+def test_skill_validates_profile_via_command():
+    assert "ticketly profile" in SKILL.read_text()

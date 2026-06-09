@@ -6,10 +6,10 @@ detailed flow lives in `SKILL.md`; read it and follow it.
 
 ## How to run it
 
-1. **Find the engine.** Run `python3 -m ticketly.home`; it prints the engine path. Call it `ENGINE`.
-   If it errors with "No module named ticketly", Ticketly isn't installed — tell the user to run
-   `./install.sh codex` (or `./install.sh all`) from the Ticketly repo, then retry.
-2. **Read the canonical workflow** at `ENGINE/.claude/skills/ticketly/SKILL.md` and follow it end to
+1. **Find the engine.** Run `ticketly home`; it prints the engine path. Call it `ENGINE`.
+   If it errors with "command not found", Ticketly isn't installed — tell the user to run
+   `pipx install ticketly && ticketly install codex` (or `pip install ticketly`), then retry.
+2. **Read the canonical workflow** at `ENGINE/claude/SKILL.md` and follow it end to
    end. Everything there applies to Codex unchanged **except** the Codex deltas below.
 3. **Read the bundled data by absolute path from `ENGINE`** as the workflow directs: the schemas,
    `ENGINE/house-style/default.json`, `ENGINE/archetypes/archetypes.json`, and
@@ -34,8 +34,8 @@ detailed flow lives in `SKILL.md`; read it and follow it.
   in one plain sentence the first time it appears, and always offer an obvious low-effort default.
 - **Read engine data from `ENGINE`; write project output to the user's current folder** —
   `./profiles/<slug>.json`, `./backlogs/<slug>.json`, `./build/`.
-- **Validate and render through the engine, never by hand:** `python3 -m ticketly.profile`,
-  `python3 -m ticketly.validate`, `python3 -m ticketly.render`.
+- **Validate and render through the engine, never by hand:** `ticketly profile`,
+  `ticketly validate`, `ticketly render`.
 
 The full detail — Discuss (with the archetype-driven, free-first stack recommendations), Distill,
 choose scope, generate, check integrity, render, and refine — is in `SKILL.md`. Read it before you

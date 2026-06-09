@@ -23,9 +23,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 from ticketly import validate as integrity
-
-ROOT = Path(__file__).resolve().parent.parent
-SCHEMA_PATH = ROOT / "schema" / "ticket.schema.json"
+from ticketly.home import TICKET_SCHEMA as SCHEMA_PATH
 
 
 class BacklogIntegrityError(ValueError):

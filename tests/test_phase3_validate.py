@@ -15,7 +15,7 @@ import pytest
 from ticketly import validate
 
 ROOT = Path(__file__).resolve().parent.parent
-CLEAN = ROOT / "examples" / "sample-release-backlog.json"
+CLEAN = ROOT / "ticketly" / "data" / "examples" / "sample-release-backlog.json"
 
 
 def _epic(tid="EPIC-API", **kw):
@@ -50,7 +50,7 @@ def test_shipped_example_is_clean():
 
 
 def test_house_style_example_is_clean():
-    data = json.loads((ROOT / "examples" / "house-style-backlog.json").read_text())
+    data = json.loads((ROOT / "ticketly" / "data" / "examples" / "house-style-backlog.json").read_text())
     assert validate.errors(validate.check_integrity(data)) == []
 
 
@@ -173,6 +173,6 @@ def test_cli_returns_one_on_errors(tmp_path):
 
 def test_skill_wires_in_validation_and_dedupe():
     skill = (ROOT / ".claude" / "skills" / "ticketly" / "SKILL.md").read_text()
-    assert "python3 -m ticketly.validate" in skill
+    assert "ticketly validate" in skill
     assert "dedupe" in skill.lower()
     assert "build order" in skill.lower()
