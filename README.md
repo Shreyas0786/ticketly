@@ -1,5 +1,7 @@
 # Ticketly
 
+[![PyPI downloads](https://static.pepy.tech/badge/ticketly)](https://pepy.tech/project/ticketly)
+
 **Turn a messy project idea into a clean, structured backlog — without leaving Claude Code or Codex.**
 
 Describe what you're building, and Ticketly breaks it into professional tickets: big areas split
@@ -128,6 +130,13 @@ current folder. Your code and other files are never touched.
 - Uses **no API key** and never asks for secrets.
 - Only reads/writes the folder you run it in. `ticketly install` just copies the Claude Code skill
   and/or appends a Codex pointer into your agent's config — no `sudo`, no remote scripts.
+
+## Contributing & Feedback
+
+Ticketly is source-visible but **not** open to code contributions — I don't accept pull requests.
+But bug reports, feature requests, and feedback are genuinely welcome and the best way to help.
+Open a [GitHub Issue](https://github.com/Shreyas0786/ticketly/issues) (there are short templates for
+bugs and features), and see [CONTRIBUTING.md](CONTRIBUTING.md) for the details.
 
 ---
 
