@@ -7,6 +7,8 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-06-13
+
 ### Added
 - Plain-language "Your plan" overview at the top of the rendered Markdown: where
   to start, a "Start today" vs. "Comes after" split driven by dependencies, and
