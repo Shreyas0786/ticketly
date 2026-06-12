@@ -280,10 +280,13 @@ ticketly validate backlogs/<slug>.json
 It reports **errors** (duplicate IDs, dependencies pointing at missing tickets, a Task parented
 to a non-epic, an epic sized above 0, circular dependencies, a Task with no acceptance criteria
 that isn't flagged `needs_clarification`) and **warnings** (tickets that share a title — a likely
-duplicate). **Fix every error before continuing** — the renderer will refuse a backlog that has
-any. For each warning, do a real **dedupe pass**: decide whether the flagged tickets are genuinely
-the same work and, if so, merge them (keep one ID, union the acceptance criteria and dependencies,
-repoint anything that depended on the dropped ID). Don't merge things that merely sound alike.
+duplicate; acceptance criteria that aren't objectively checkable — vague quality words like "works
+well" or a bare "done"). **Fix every error before continuing** — the renderer will refuse a backlog
+that has any. For a duplicate-title warning, do a real **dedupe pass**: decide whether the flagged
+tickets are genuinely the same work and, if so, merge them (keep one ID, union the acceptance
+criteria and dependencies, repoint anything that depended on the dropped ID); don't merge things
+that merely sound alike. For a vague-criteria warning, rewrite the flagged criterion as something
+you could tick off — this is the same bar as the self-check in step 6.
 
 ### 8. Render
 

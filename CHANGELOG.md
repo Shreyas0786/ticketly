@@ -18,6 +18,10 @@ All notable changes to Ticketly are recorded here. The format follows
   missing dependencies, gaps, sane effort, flagged unknowns) and fixes weak spots
   before showing the user — so a plan doesn't reach a non-technical builder with
   obvious holes.
+- Checkability lint in `ticketly validate`: a non-blocking `vague_acceptance_criteria`
+  **warning** flags acceptance criteria that can't be objectively ticked off —
+  subjective quality words ("works well", "user-friendly") or a bare "done". Curated
+  to stay quiet, so a well-written backlog raises no false alarms.
 
 ## [1.0.0] — 2026-06-08
 

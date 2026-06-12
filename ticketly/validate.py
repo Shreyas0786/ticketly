@@ -7,7 +7,8 @@ Epic, epics sized at 0, no circular dependencies, and (the guardrail) every Task
 carrying acceptance criteria unless it is explicitly flagged for clarification.
 
 Problems are tagged ``error`` (the backlog is broken — rendering aborts) or
-``warning`` (worth a look — e.g. likely duplicate tickets — but not fatal).
+``warning`` (worth a look — likely duplicate tickets, or acceptance criteria that
+aren't objectively checkable — but not fatal).
 
 ``build_order`` returns the Tasks topologically sorted by their dependencies, so
 they can be worked one at a time; it returns ``None`` if a cycle makes ordering
@@ -39,6 +40,32 @@ class Problem:
 
 def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().lower())
+
+
+# Acceptance criteria that can't be objectively ticked off: subjective quality
+# words and bare completion words. Curated to stay quiet — only phrases that are
+# almost always non-checkable — so a well-written backlog raises no false alarms.
+_VAGUE_AC_PHRASES = (
+    "works well", "work well", "works fine", "works correctly", "works properly",
+    "works as expected", "as expected", "user-friendly", "user friendly",
+    "easy to use", "intuitive", "seamless", "seamlessly", "gracefully",
+    "looks good", "looks nice", "performs well", "fast enough",
+    "and so on", "etc.",
+)
+_BARE_AC_WORDS = frozenset({
+    "done", "works", "working", "complete", "completed", "finished",
+    "good", "ok", "okay", "tested", "implemented",
+})
+
+
+def _uncheckable_ac(criterion: str) -> bool:
+    """True if an acceptance criterion isn't objectively checkable — a bare
+    completion word ('done', 'works') or a subjective quality phrase."""
+    text = criterion.strip().lower()
+    bare = re.sub(r"[^a-z0-9 ]", "", text).strip()
+    if bare in _BARE_AC_WORDS:
+        return True
+    return any(phrase in text for phrase in _VAGUE_AC_PHRASES)
 
 
 def _cycle_exists(tickets: list[dict], ids: set[str]) -> bool:
@@ -113,6 +140,17 @@ def check_integrity(data: dict[str, Any]) -> list[Problem]:
                         "error",
                         "missing_acceptance_criteria",
                         "Task has no acceptance criteria and is not flagged needs_clarification",
+                        tid,
+                    )
+                )
+            vague = [c for c in t.get("acceptance_criteria", []) if _uncheckable_ac(c)]
+            if vague:
+                preview = "; ".join(vague[:2])
+                problems.append(
+                    Problem(
+                        "warning",
+                        "vague_acceptance_criteria",
+                        f"acceptance criteria may not be objectively checkable: {preview}",
                         tid,
                     )
                 )
