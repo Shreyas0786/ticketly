@@ -129,6 +129,41 @@ def test_possible_duplicate_title_is_warning():
     assert dup and dup[0].severity == "warning"
 
 
+# --- vague acceptance criteria (checkability lint) -----------------------
+
+def test_vague_phrase_acceptance_criterion_is_warning():
+    bl = _backlog(_epic(), _task("API-001", acceptance_criteria=["the page works well"]))
+    problems = validate.check_integrity(bl)
+    vague = [p for p in problems if p.code == "vague_acceptance_criteria"]
+    assert vague and vague[0].severity == "warning"
+
+
+def test_bare_completion_word_is_flagged():
+    bl = _backlog(_epic(), _task("API-001", acceptance_criteria=["Done."]))
+    assert "vague_acceptance_criteria" in codes(validate.check_integrity(bl))
+
+
+def test_vague_acceptance_criteria_never_an_error():
+    # it must stay a warning so it never blocks rendering
+    bl = _backlog(_epic(), _task("API-001", acceptance_criteria=["intuitive and easy to use"]))
+    problems = validate.check_integrity(bl)
+    assert not any(p.code == "vague_acceptance_criteria" and p.severity == "error"
+                   for p in problems)
+
+
+def test_checkable_criteria_not_flagged():
+    bl = _backlog(_epic(), _task("API-001", acceptance_criteria=[
+        "responds within 200ms at p95", "rejects files over 10MB with a 413"]))
+    assert "vague_acceptance_criteria" not in codes(validate.check_integrity(bl))
+
+
+def test_shipped_examples_have_no_vague_criteria():
+    # the curated lint must be quiet on the hand-written example backlogs
+    for name in ("sample-release-backlog.json", "house-style-backlog.json"):
+        data = json.loads((ROOT / "ticketly" / "data" / "examples" / name).read_text())
+        assert "vague_acceptance_criteria" not in codes(validate.check_integrity(data))
+
+
 # --- build order ---------------------------------------------------------
 
 def test_build_order_respects_dependencies():
