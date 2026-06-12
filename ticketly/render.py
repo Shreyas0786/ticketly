@@ -184,6 +184,77 @@ def _count(n: int, noun: str) -> str:
     return f"{n} {noun}" if n == 1 else f"{n} {noun}s"
 
 
+# Epic size buckets, keyed on summed child effort (Fibonacci points). We say the
+# size in words — a non-technical reader gets the scale without learning story
+# points, and we never claim a number of weeks the engine can't actually know.
+_SIZE_SMALL_MAX = 5
+_SIZE_MEDIUM_MAX = 15
+
+
+def _size_word(points: int) -> str:
+    if points <= _SIZE_SMALL_MAX:
+        return "small"
+    if points <= _SIZE_MEDIUM_MAX:
+        return "medium"
+    return "large"
+
+
+# Priority is optional and hidden by default. When it's absent this ranks every
+# ticket the same, so the start order stays driven purely by dependencies.
+_PRIORITY_RANK = {"High": 0, "Medium": 1, "Low": 2}
+
+
+def _md_your_plan(tickets: list[dict]) -> list[str]:
+    """A plain-language overview above the detailed sections: where to start,
+    what's doable now vs. later, and how big each area is. Deterministic."""
+    order = integrity.build_order(tickets)
+    if not order:  # no Tasks, or a cycle (an integrity error caught upstream)
+        return []
+    titles = {t["id"]: t["title"] for t in tickets}
+    pos = {tid: i for i, tid in enumerate(order)}
+    by_id = {t["id"]: t for t in tickets if t["type"] == "Task"}
+    task_ids = set(by_id)
+
+    def task_deps(t: dict) -> list[str]:
+        return [d for d in t.get("dependencies", []) if d in task_ids and d != t["id"]]
+
+    # Build order first; then float High-priority tickets up. With no priority
+    # set anywhere, _PRIORITY_RANK.get(...) is constant and this is pure order.
+    def sort_key(tid: str) -> tuple[int, int]:
+        return (_PRIORITY_RANK.get(by_id[tid].get("priority"), 1), pos[tid])
+
+    start_now = sorted([tid for tid in order if not task_deps(by_id[tid])], key=sort_key)
+    started = set(start_now)
+    later = [tid for tid in order if tid not in started]  # keeps dependency order
+
+    lines = ["## Your plan", ""]
+    if start_now:
+        first = start_now[0]
+        lines += [f"**Where to start:** {first} — {titles[first]}.", ""]
+        lines += ["**Start today** — nothing is blocking these:", ""]
+        lines += [f"- {tid} — {titles[tid]}" for tid in start_now]
+        lines.append("")
+    if later:
+        lines += ["**Comes after** — each of these waits on something above:", ""]
+        for tid in later:
+            waits = ", ".join(task_deps(by_id[tid]))
+            lines.append(f"- {tid} — {titles[tid]} (waits on {waits})")
+        lines.append("")
+
+    epics = _epics(tickets)
+    if epics:
+        lines += ["**How big each area is:**", ""]
+        for epic in epics:
+            child = _tasks_for(epic["id"], tickets)
+            points = sum(t["effort"] for t in child)
+            lines.append(
+                f"- {epic['id']} — {epic['title']}: {_size_word(points)} "
+                f"({_count(len(child), 'ticket')})"
+            )
+        lines.append("")
+    return lines
+
+
 def render_markdown(data: dict[str, Any]) -> str:
     """Render the backlog as a review-ready Markdown document."""
     tickets = data["tickets"]
@@ -200,6 +271,7 @@ def render_markdown(data: dict[str, Any]) -> str:
         f"{_count(total_points, 'point')}",
         "",
     ]
+    lines += _md_your_plan(tickets)
     for epic in _epics(tickets):
         lines += _md_epic_section(epic, tickets)
 

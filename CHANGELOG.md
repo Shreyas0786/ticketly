@@ -7,8 +7,12 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
-_Nothing yet. Add changes here as you make them; move them under a new version
-heading when you release._
+### Added
+- Plain-language "Your plan" overview at the top of the rendered Markdown: where
+  to start, a "Start today" vs. "Comes after" split driven by dependencies, and
+  each area's size in words (small/medium/large) rather than story-point numbers.
+  Stays deterministic — no model calls. Optional `priority` nudges the start
+  order to the top when set, but order is pure dependency order without it.
 
 ## [1.0.0] — 2026-06-08
 
