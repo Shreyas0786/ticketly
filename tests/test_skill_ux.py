@@ -72,5 +72,33 @@ def test_install_delegates_to_the_ticketly_command():
 def test_skill_steps_are_numbered_without_collision():
     # the renumbered flow must have one each of these headers
     for header in ("### 4. choose the scope", "### 5. generate the backlog",
-                   "### 6. check integrity", "### 7. render"):
+                   "### 6. self-check", "### 7. check integrity", "### 8. render"):
         assert header in SKILL_LOWER, f"missing {header}"
+
+
+# --- self-check pass -----------------------------------------------------
+
+def test_self_check_runs_after_generate_before_integrity():
+    # the model must re-read its own backlog between generating and checking it
+    gen = SKILL_LOWER.index("generate the backlog")
+    self_check = SKILL_LOWER.index("### 6. self-check")
+    integrity = SKILL_LOWER.index("### 7. check integrity")
+    assert gen < self_check < integrity
+
+
+def test_self_check_is_a_concrete_checklist_not_vague():
+    # the checklist must name the specific things to verify, not just "look for gaps"
+    for needle in ("testable", "acceptance criterion", "missing dependencies",
+                   "effort_rubric", "needs_clarification"):
+        assert needle in SKILL_LOWER, f"self-check should mention {needle}"
+
+
+def test_self_check_calls_out_vague_acceptance_criteria():
+    assert "aren't checkable" in SKILL_LOWER
+    # at least one concrete example of a non-checkable phrase to reject
+    assert "works well" in SKILL_LOWER
+
+
+def test_self_check_says_fix_not_just_note():
+    block = SKILL_LOWER.split("### 6. self-check")[1].split("### 7.")[0]
+    assert "fix" in block

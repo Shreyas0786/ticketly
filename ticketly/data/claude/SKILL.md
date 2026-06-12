@@ -140,7 +140,7 @@ question. **Never scrape a *company* name** from `package.json`/`pyproject.toml`
    forward work: finish the half-built feature, add the missing tests, wire the stub, document the
    public API. Then continue with **step 4 (Choose the scope)** onward — for an existing project,
    frame the scope choice as *"just the TODOs and gaps"* vs *"everything I'd plan next"* — then
-   generate, check integrity, and render exactly as in steps 5–7.
+   generate, self-check, check integrity, and render exactly as in steps 5–8.
 
 ### 2. Discuss (free-form)
 
@@ -246,7 +246,30 @@ Using the confirmed profile, the requirements, and the chosen scope:
 Write the result to `./backlogs/<project-slug>.json` in the current folder. It must conform to the
 ticket schema at `ENGINE/schema/ticket.schema.json`.
 
-### 6. Check integrity & dedupe
+### 6. Self-check — re-read your own backlog before showing it
+
+Before you check integrity or show anything, re-read the backlog you just wrote as if a skeptical
+PM handed it to you, and **fix** what's weak — don't just note it. A non-technical builder can't
+tell when a plan is missing something obvious; that blank-page fear is exactly what they came to
+escape. Catching your own gaps is what makes the plan trustworthy, and trust is the product. Walk
+this checklist:
+
+1. **Every Task has at least one *testable* acceptance criterion** — a condition you could tick
+   off, not a restatement of the title. Vague phrases ("works well", "is fast", "user-friendly",
+   "handles errors gracefully") aren't checkable; rewrite them as something verifiable.
+2. **No missing dependencies** — if Task B can't start until Task A is done, B must list A in
+   `dependencies`. Read the actual work, not just the titles (login before profile editing, a
+   schema before the API that reads it, infra before the service that runs on it).
+3. **No obvious gaps** — a happy path usually implies setup, error/empty states, and a way to
+   verify it. If the requirements clearly need a step you didn't write, add it.
+4. **Effort is sane against the rubric** — a Task with five acceptance criteria sized `1`, or a
+   one-line change sized `13`, is probably miscalibrated. Re-size against the `effort_rubric`.
+5. **Every area has real work** — no empty epic, no Task orphaned from its epic.
+6. **Anything still underspecified is flagged** `needs_clarification: true`, never quietly guessed.
+
+Fix what you find before continuing. Don't show the user a draft you already know has holes.
+
+### 7. Check integrity & dedupe
 
 Before rendering, run the integrity checker — it catches what the schema can't:
 
@@ -262,7 +285,7 @@ any. For each warning, do a real **dedupe pass**: decide whether the flagged tic
 the same work and, if so, merge them (keep one ID, union the acceptance criteria and dependencies,
 repoint anything that depended on the dropped ID). Don't merge things that merely sound alike.
 
-### 7. Render
+### 8. Render
 
 ```bash
 ticketly render backlogs/<slug>.json --format both --out-dir build/
