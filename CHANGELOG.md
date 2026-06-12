@@ -13,6 +13,11 @@ All notable changes to Ticketly are recorded here. The format follows
   each area's size in words (small/medium/large) rather than story-point numbers.
   Stays deterministic — no model calls. Optional `priority` nudges the start
   order to the top when set, but order is pure dependency order without it.
+- Self-check step in the `/ticketly` skill: after generating, the model re-reads
+  its own backlog against a concrete checklist (testable acceptance criteria,
+  missing dependencies, gaps, sane effort, flagged unknowns) and fixes weak spots
+  before showing the user — so a plan doesn't reach a non-technical builder with
+  obvious holes.
 
 ## [1.0.0] — 2026-06-08
 
