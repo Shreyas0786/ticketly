@@ -100,7 +100,9 @@ It writes everything into your current folder:
 
 - `profiles/<project>.json` — what it learned about your project (reused on later runs).
 - `backlogs/<project>.json` — the generated tickets.
-- `build/<project>.md` — a readable backlog with a suggested build order.
+- `build/<project>.md` — a readable backlog. Opens with a plain-language **Your plan**
+  overview (where to start, what you can do now vs. later, and how big each area is), then
+  the full tickets and a suggested build order.
 - `build/<project>.csv` — import into any tracker. Includes a blank **Assignee** column you fill
   in later (in the tracker or Notion). Add Notion with `--format notion`.
 
