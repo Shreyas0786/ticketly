@@ -135,10 +135,19 @@ current folder. Your code and other files are never touched.
 
 ## Contributing & Feedback
 
-Ticketly is source-visible but **not** open to code contributions — I don't accept pull requests.
-But bug reports, feature requests, and feedback are genuinely welcome and the best way to help.
-Open a [GitHub Issue](https://github.com/Shreyas0786/ticketly/issues) (there are short templates for
-bugs and features), and see [CONTRIBUTING.md](CONTRIBUTING.md) for the details.
+**Ticketly does not accept outside code contributions.** It's source-visible so you can read and
+use it, but it's developed solely by the author — **pull requests are not accepted and will be
+closed unmerged.** Please don't open one.
+
+What *is* genuinely welcome — and the best way to help — is **bug reports, feature requests, and
+feedback**. Open a [GitHub Issue](https://github.com/Shreyas0786/ticketly/issues) (there are short
+templates for bugs and features); see [CONTRIBUTING.md](CONTRIBUTING.md) for the full policy and the
+[LICENSE](LICENSE) for usage terms.
+
+## Security
+
+Found a security issue? **Please don't open a public issue** — report it privately via the
+repository's **Security** tab ("Report a vulnerability"). See [SECURITY.md](SECURITY.md) for details.
 
 ---
 
