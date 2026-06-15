@@ -1,11 +1,11 @@
 """Validate a project profile against the profile schema.
 
-A profile (``profiles/<project>.json`` in the user's folder) captures the
+A profile (``ticketly/.data/profile.json`` in the user's folder) captures the
 user-supplied stack, architecture, and agreed prefix scheme. This module checks
 one against ``profile/profile.schema.json`` from the installed engine, so the
 ``/ticketly`` skill can verify a profile from any working directory:
 
-    python3 -m ticketly.profile profiles/<project>.json
+    python3 -m ticketly.profile ticketly/.data/profile.json
 """
 
 from __future__ import annotations

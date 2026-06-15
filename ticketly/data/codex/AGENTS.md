@@ -32,8 +32,9 @@ detailed flow lives in `SKILL.md`; read it and follow it.
   missing — do not fill the gap with a guess.
 - **Talk like a builder, not a developer.** Assume the user may be non-technical: explain any concept
   in one plain sentence the first time it appears, and always offer an obvious low-effort default.
-- **Read engine data from `ENGINE`; write project output to the user's current folder** —
-  `./profiles/<slug>.json`, `./backlogs/<slug>.json`, `./build/`.
+- **Read engine data from `ENGINE`; write project output into the user's current folder** under a
+  single `./ticketly/` — exports (`backlog.md`, `tasks.md`, `backlog.csv`) at the top, source JSONs
+  in `./ticketly/.data/` (`profile.json`, `backlog.json`).
 - **Validate and render through the engine, never by hand:** `ticketly profile`,
   `ticketly validate`, `ticketly render`.
 

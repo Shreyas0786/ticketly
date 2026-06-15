@@ -7,6 +7,24 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `tasks.md` export — an agent-ready checklist: one checkbox per ticket (grouped by
+  epic, dependency-ordered), with dependencies and acceptance criteria inline.
+  `Done` renders as `- [x]`, in-progress as `- [ ]` + 🚧, so a coding agent can read
+  the file and tick boxes as it works. New `--format tasks`, and a `core` format
+  (md + csv + tasks) that the skill now generates by default.
+
+### Changed
+- Consolidated output into a single `ticketly/` folder: the readable exports
+  (`backlog.md`, `tasks.md`, `backlog.csv`) at the top, and the machine
+  source-of-truth JSONs in a hidden `ticketly/.data/`. Exports use fixed names
+  (`backlog.md`) instead of `<project>.md`. Replaces the old `profiles/` +
+  `backlogs/` + `build/` layout — new runs write to `ticketly/`; files already
+  generated under the old layout are left untouched.
+- `ticketly reset` now clears the current folder's `ticketly/` files (the `<project>`
+  argument and `--all` flag are gone — one project per folder). Same safety
+  contract: confirms first, only deletes files it can fingerprint as its own.
+
 ## [1.1.0] — 2026-06-13
 
 ### Added

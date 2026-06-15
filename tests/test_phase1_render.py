@@ -139,9 +139,9 @@ def test_csv_renders_booleans_lowercase(backlog):
 
 # --- cli -----------------------------------------------------------------
 
-def test_cli_defaults_to_both_formats():
+def test_cli_defaults_to_core_format():
     args = render.build_parser().parse_args(["some.json"])
-    assert args.format == "both"
+    assert args.format == "core"
     assert args.out_dir is None
 
 
@@ -156,13 +156,14 @@ def test_cli_requires_a_backlog_argument():
 
 
 def test_cli_writes_files(tmp_path, backlog):
-    out_dir = tmp_path / "build"
-    rc = render.main([str(BACKLOG_PATH), "--format", "both", "--out-dir", str(out_dir)])
+    out_dir = tmp_path / "ticketly"
+    rc = render.main([str(BACKLOG_PATH), "--format", "core", "--out-dir", str(out_dir)])
     assert rc == 0
     files = {p.name for p in out_dir.iterdir()}
-    assert files == {"demo-project.md", "demo-project.csv"}
+    assert files == {"backlog.md", "backlog.csv", "tasks.md"}
     # written files are non-empty and the CSV re-parses
-    md_text = (out_dir / "demo-project.md").read_text()
+    md_text = (out_dir / "backlog.md").read_text()
     assert md_text.startswith("# ")
-    csv_rows = list(csv.reader((out_dir / "demo-project.csv").open()))
+    assert (out_dir / "tasks.md").read_text().startswith("# ")
+    csv_rows = list(csv.reader((out_dir / "backlog.csv").open()))
     assert csv_rows[0] == render.CSV_COLUMNS
