@@ -96,35 +96,38 @@ That's it — the bundled skill and Codex pointer update with the package. (Re-r
 3. Describe your project and answer its questions — or, on an existing repo, just confirm what it
    read from the code.
 
-It writes everything into your current folder:
+It writes everything into a single `ticketly/` folder in your current directory:
 
-- `profiles/<project>.json` — what it learned about your project (reused on later runs).
-- `backlogs/<project>.json` — the generated tickets.
-- `build/<project>.md` — a readable backlog. Opens with a plain-language **Your plan**
-  overview (where to start, what you can do now vs. later, and how big each area is), then
-  the full tickets and a suggested build order.
-- `build/<project>.csv` — import into any tracker. Includes a blank **Assignee** column you fill
+- `ticketly/tasks.md` — an **agent-ready checklist**: one checkbox per ticket, grouped by epic, with
+  dependencies and acceptance criteria inline. Hand this to a coding agent (Claude Code, Cursor) to
+  work through, ticking boxes as it goes.
+- `ticketly/backlog.md` — a readable backlog. Opens with a plain-language **Your plan** overview
+  (where to start, what you can do now vs. later, and how big each area is), then the full tickets
+  and a suggested build order.
+- `ticketly/backlog.csv` — import into any tracker. Includes a blank **Assignee** column you fill
   in later (in the tracker or Notion). Add Notion with `--format notion`.
+- `ticketly/.data/` — the machine source-of-truth (`profile.json`, `backlog.json`), tucked away;
+  you never need to open these.
 
 You can re-export a backlog any time:
 
 ```bash
-ticketly render backlogs/<project>.json --format all --out-dir build/
+ticketly render ticketly/.data/backlog.json --format all --out-dir ticketly/
 ```
 
 ## Starting a project over
 
-Requirements changed and you want a clean slate? Reset a project's generated files, then re-run
+Requirements changed and you want a clean slate? Reset this folder's generated files, then re-run
 `/ticketly` with the new requirements:
 
 ```bash
-ticketly reset <project>      # asks before deleting; --all resets every project here
+ticketly reset      # asks before deleting
 ```
 
-Reset is deliberately careful: it only ever removes Ticketly's own generated files for that project
-(`profiles/<project>.json`, `backlogs/<project>.json`, and `build/<project>.*`), confirms each one
-with you first, never touches a file it can't verify as Ticketly's, and never reaches outside the
-current folder. Your code and other files are never touched.
+Reset is deliberately careful: it only ever removes Ticketly's own generated files in `ticketly/`
+(`tasks.md`, `backlog.md`, `backlog.csv`, and the `.data/` JSONs), confirms each one with you first,
+never touches a file it can't verify as Ticketly's, and never reaches outside the current folder.
+Your code and other files are never touched.
 
 ## Safe by design
 

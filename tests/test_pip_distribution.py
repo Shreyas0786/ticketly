@@ -100,7 +100,7 @@ def test_cli_unknown_command_is_an_error(capsys):
 def test_cli_passes_through_to_render(tmp_path):
     assert cli.main(["render", str(SAMPLE_BACKLOG), "--format", "md",
                      "--out-dir", str(tmp_path)]) == 0
-    assert (tmp_path / "demo-project.md").is_file()
+    assert (tmp_path / "backlog.md").is_file()
 
 
 # --- install: wires agents idempotently ----------------------------------
@@ -138,90 +138,85 @@ def test_install_codex_preserves_user_content(tmp_path, monkeypatch):
 
 # --- reset: the safety contract ------------------------------------------
 
-def _make_project(base: Path, slug: str) -> None:
-    """Create a full set of real Ticketly files for one project."""
-    (base / "profiles").mkdir(exist_ok=True)
-    (base / "backlogs").mkdir(exist_ok=True)
-    (base / "build").mkdir(exist_ok=True)
-    shutil.copyfile(SAMPLE_PROFILE, base / "profiles" / f"{slug}.json")
-    (base / "backlogs" / f"{slug}.json").write_text(
-        json.dumps({"project": slug, "tickets": []}))
-    (base / "build" / f"{slug}.md").write_text(f"# {slug} backlog\n")
-    (base / "build" / f"{slug}.csv").write_text(",".join(render.CSV_COLUMNS) + "\n")
+def _make_project(base: Path) -> None:
+    """Create a full set of real Ticketly files in this folder's ./ticketly/."""
+    out = base / "ticketly"
+    data = out / ".data"
+    data.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(SAMPLE_PROFILE, data / "profile.json")
+    (data / "backlog.json").write_text(
+        json.dumps({"project": "demo", "tickets": []}))
+    (out / "backlog.md").write_text("# demo backlog\n")
+    (out / "tasks.md").write_text("# demo tasks\n")
+    (out / "backlog.csv").write_text(",".join(render.CSV_COLUMNS) + "\n")
 
 
-def test_reset_deletes_only_this_projects_files(tmp_path, monkeypatch):
+def test_reset_deletes_only_ticketly_files(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    _make_project(tmp_path, "myapp")
+    _make_project(tmp_path)
     # foreign files that must survive:
-    (tmp_path / "profiles" / "notes.json").write_text('{"mine": true}')
-    (tmp_path / "backlogs" / "other.json").write_text('{"foo": 1}')
-    (tmp_path / "build" / "README.md").write_text("# my real notes\n")
+    (tmp_path / "ticketly" / "notes.md").write_text("# my real notes\n")
     (tmp_path / "secret.txt").write_text("do not touch")
 
-    assert cli.main(["reset", "myapp", "-y"]) == 0
+    assert cli.main(["reset", "-y"]) == 0
 
-    # the project's files are gone:
-    assert not (tmp_path / "profiles" / "myapp.json").exists()
-    assert not (tmp_path / "backlogs" / "myapp.json").exists()
-    assert not (tmp_path / "build" / "myapp.md").exists()
-    assert not (tmp_path / "build" / "myapp.csv").exists()
+    # the generated files are gone:
+    for rel in (".data/profile.json", ".data/backlog.json",
+                "backlog.md", "tasks.md", "backlog.csv"):
+        assert not (tmp_path / "ticketly" / rel).exists(), rel
     # everything else is untouched:
-    assert (tmp_path / "profiles" / "notes.json").exists()
-    assert (tmp_path / "backlogs" / "other.json").exists()
-    assert (tmp_path / "build" / "README.md").exists()
+    assert (tmp_path / "ticketly" / "notes.md").read_text() == "# my real notes\n"
     assert (tmp_path / "secret.txt").read_text() == "do not touch"
 
 
 def test_reset_skips_a_foreign_file_with_a_matching_name(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    (tmp_path / "build").mkdir()
-    # named like ours, but NOT our content -> must be preserved
-    decoy = tmp_path / "build" / "myapp.md"
-    decoy.write_text("# my personal myapp design doc\n")
-    assert cli.main(["reset", "myapp", "-y"]) == 0
+    (tmp_path / "ticketly").mkdir()
+    # named exactly like ours, but NOT our content -> must be preserved
+    decoy = tmp_path / "ticketly" / "backlog.md"
+    decoy.write_text("# my personal design doc\n")
+    assert cli.main(["reset", "-y"]) == 0
     assert decoy.exists()
-    assert decoy.read_text() == "# my personal myapp design doc\n"
+    assert decoy.read_text() == "# my personal design doc\n"
 
 
 def test_reset_does_not_follow_symlinks(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     outside = tmp_path.parent / "outside_target.json"
     shutil.copyfile(SAMPLE_PROFILE, outside)
-    (tmp_path / "profiles").mkdir()
-    link = tmp_path / "profiles" / "myapp.json"
+    data = tmp_path / "ticketly" / ".data"
+    data.mkdir(parents=True)
+    link = data / "profile.json"
     link.symlink_to(outside)  # a valid-looking, fingerprint-passing target
     try:
-        assert cli.main(["reset", "myapp", "-y"]) == 0
+        assert cli.main(["reset", "-y"]) == 0
         assert outside.exists(), "reset must not delete a symlink's target"
         assert link.is_symlink(), "reset must not remove the symlink itself"
     finally:
         outside.unlink(missing_ok=True)
 
 
-def test_reset_requires_a_project_or_all(tmp_path, monkeypatch):
+def test_reset_rejects_unexpected_arguments(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    with pytest.raises(SystemExit):  # argparse rejects no target
-        cli.main(["reset"])
+    with pytest.raises(SystemExit):  # the slug/--all interface is gone
+        cli.main(["reset", "myapp"])
 
 
-def test_reset_all_discovers_every_project(tmp_path, monkeypatch):
+def test_reset_removes_the_emptied_ticketly_folder(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    _make_project(tmp_path, "app-one")
-    _make_project(tmp_path, "app-two")
-    assert cli.main(["reset", "--all", "-y"]) == 0
-    assert not (tmp_path / "backlogs" / "app-one.json").exists()
-    assert not (tmp_path / "backlogs" / "app-two.json").exists()
+    _make_project(tmp_path)
+    assert cli.main(["reset", "-y"]) == 0
+    assert not (tmp_path / "ticketly").exists()  # emptied, then tidied away
 
 
 def test_reset_aborts_when_not_confirmed(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    _make_project(tmp_path, "myapp")
+    _make_project(tmp_path)
     monkeypatch.setattr("builtins.input", lambda *_: "n")
-    assert cli.main(["reset", "myapp"]) == 1  # declined
-    assert (tmp_path / "backlogs" / "myapp.json").exists()  # nothing deleted
+    assert cli.main(["reset"]) == 1  # declined
+    assert (tmp_path / "ticketly" / ".data" / "backlog.json").exists()  # nothing deleted
 
 
 def test_reset_with_nothing_to_do_is_clean(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    assert cli.main(["reset", "ghost", "-y"]) == 0  # no files, no error
+    assert cli.main(["reset", "-y"]) == 0  # no files, no error

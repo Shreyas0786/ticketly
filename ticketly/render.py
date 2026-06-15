@@ -6,8 +6,8 @@ tracker-importable CSV come out. Validation always runs first, so a
 malformed backlog fails loudly instead of producing junk output.
 
 Usage:
-    python -m ticketly.render BACKLOG.json --format both --out-dir build/
-    python -m ticketly.render BACKLOG.json --format notion --out-dir build/
+    python -m ticketly.render BACKLOG.json --format core --out-dir ticketly/
+    python -m ticketly.render BACKLOG.json --format notion --out-dir ticketly/
 """
 
 from __future__ import annotations
@@ -302,6 +302,77 @@ def _md_build_order(tickets: list[dict]) -> list[str]:
     return lines
 
 
+def _tasks_md_marker(t: dict) -> str:
+    """Trailing markers on a task line: in-progress, then needs-clarification."""
+    bits = ""
+    if t["status"] == "In Progress":
+        bits += " 🚧"
+    if t.get("needs_clarification"):
+        bits += " ⚠️"
+    return bits
+
+
+def _tasks_md_block(t: dict) -> list[str]:
+    """One checklist entry: a checkbox line anchored on the bold ticket id, an
+    effort/dependencies line, then the acceptance criteria as plain sub-bullets."""
+    box = "x" if t["status"] == "Done" else " "
+    deps = ", ".join(t.get("dependencies") or []) or "nothing"
+    lines = [
+        f"- [{box}] **{t['id']} — {t['title']}**{_tasks_md_marker(t)}",
+        f"  - Effort {t['effort']} · Depends on: {deps}",
+    ]
+    lines += [f"  - {c}" for c in t.get("acceptance_criteria") or []]
+    return lines
+
+
+def render_tasks_md(data: dict[str, Any]) -> str:
+    """Render the backlog as an agent-ready task checklist, grouped by epic.
+
+    One checkbox per Task — `Done` → ``- [x]``, otherwise ``- [ ]`` (an in-progress
+    ticket keeps its box open and gains a 🚧 marker). Each line is anchored on its
+    bold ticket id so an agent (or, later, the tracker app) can read this file AND
+    flip the boxes as work completes: this file is the status source of truth.
+
+    Tickets are grouped under their epic, and ordered within each epic by
+    dependency (topological) so the list still reads safely top to bottom.
+    """
+    tickets = data["tickets"]
+    order = integrity.build_order(tickets)
+    pos = {tid: i for i, tid in enumerate(order)}
+
+    def in_dep_order(tasks: list[dict]) -> list[dict]:
+        return sorted(tasks, key=lambda t: pos.get(t["id"], len(order)))
+
+    company = data.get("company")
+    project = data["project"]
+    title = f"{company} — {project} tasks" if company else f"{project} tasks"
+    lines = [
+        f"# {title}",
+        "",
+        "> Check a box when a ticket's acceptance criteria are all met.",
+        "> Each ticket shows what it depends on — don't start one until its deps are done.",
+        "",
+    ]
+
+    for epic in _epics(tickets):
+        children = _tasks_for(epic["id"], tickets)
+        if not children:  # a work checklist skips epics with nothing to do
+            continue
+        lines += [f"## {epic['id']} — {epic['title']}", ""]
+        for t in in_dep_order(children):
+            lines += _tasks_md_block(t)
+        lines.append("")
+
+    orphans = _orphan_tasks(tickets)
+    if orphans:
+        lines += ["## Unassigned", ""]
+        for t in in_dep_order(orphans):
+            lines += _tasks_md_block(t)
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ticketly.render",
@@ -310,21 +381,36 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("backlog", help="Path to a backlog JSON file.")
     parser.add_argument(
         "--format",
-        choices=["md", "csv", "notion", "both", "all"],
-        default="both",
-        help="Output format(s): md, csv, notion, both (md+csv), or all. Default: both.",
+        choices=["md", "csv", "notion", "tasks", "core", "both", "all"],
+        default="core",
+        help="Output format(s): single (md, csv, notion, tasks) or a set — "
+        "core (md+csv+tasks), both (md+csv), all (everything). Default: core.",
     )
     parser.add_argument(
         "--out-dir",
         default=None,
-        help="Directory to write <project>.md / <project>.csv into. "
+        help="Directory to write the exports into (e.g. ticketly/): "
+        "backlog.md, backlog.csv, tasks.md, backlog.notion.csv. "
         "If omitted, output is printed to stdout.",
     )
     return parser
 
 
-def _slug(name: str) -> str:
-    return "".join(c if c.isalnum() else "-" for c in name.lower()).strip("-") or "backlog"
+# Each format key maps to (output filename, renderer). Filenames are fixed — one
+# project per folder, so the project name lives in the folder, not the filename.
+_RENDERERS: dict[str, tuple[str, Any]] = {
+    "md": ("backlog.md", render_markdown),
+    "csv": ("backlog.csv", render_csv),
+    "notion": ("backlog.notion.csv", render_notion_csv),
+    "tasks": ("tasks.md", render_tasks_md),
+}
+
+# Set formats expand to several single keys (kept in a stable, readable order).
+_FORMAT_SETS: dict[str, list[str]] = {
+    "core": ["md", "csv", "tasks"],
+    "both": ["md", "csv"],
+    "all": ["md", "csv", "notion", "tasks"],
+}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -335,28 +421,21 @@ def main(argv: list[str] | None = None) -> int:
     for w in integrity.warnings(integrity.check_integrity(data)):
         print(w, file=sys.stderr)
 
-    # keys double as filename suffixes: <project>.md / .csv / .notion.csv
-    outputs: dict[str, str] = {}
-    if args.format in ("md", "both", "all"):
-        outputs["md"] = render_markdown(data)
-    if args.format in ("csv", "both", "all"):
-        outputs["csv"] = render_csv(data)
-    if args.format in ("notion", "all"):
-        outputs["notion.csv"] = render_notion_csv(data)
+    keys = _FORMAT_SETS.get(args.format, [args.format])
 
     if args.out_dir is None:
-        for i, text in enumerate(outputs.values()):
+        for i, key in enumerate(keys):
             if i:
                 print()
-            print(text, end="")
+            print(_RENDERERS[key][1](data), end="")
         return 0
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    stem = _slug(data["project"])
-    for ext, text in outputs.items():
-        path = out_dir / f"{stem}.{ext}"
-        path.write_text(text)
+    for key in keys:
+        filename, renderer = _RENDERERS[key]
+        path = out_dir / filename
+        path.write_text(renderer(data))
         print(f"wrote {path}", file=sys.stderr)
     return 0
 

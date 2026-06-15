@@ -109,7 +109,7 @@ def test_render_runs_from_a_foreign_directory(tmp_path):
         cwd=tmp_path, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
-    assert (tmp_path / "out" / "demo-project.md").is_file()
+    assert (tmp_path / "out" / "backlog.md").is_file()
 
 
 # --- skill is global-ready ----------------------------------------------
@@ -118,8 +118,8 @@ def test_skill_uses_engine_locator_not_cwd_paths():
     text = SKILL.read_text()
     assert "ticketly home" in text
     assert "ENGINE" in text
-    # writes go to the current folder
-    assert "./profiles/" in text and "./backlogs/" in text and "./build/" in text
+    # writes go into a single ./ticketly/ folder in the current directory
+    assert "./ticketly/" in text and "./ticketly/.data/" in text
 
 
 def test_skill_validates_profile_via_command():
