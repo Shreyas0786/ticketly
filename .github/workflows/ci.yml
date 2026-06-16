@@ -1,14 +1,16 @@
 name: CI
 
-# Run the test suite on every PR and on pushes to main, across the full range
-# of still-supported Python 3 versions (matches requires-python = ">=3.10" in
-# pyproject.toml). No publish step here — releases stay a deliberate manual
-# `twine upload`; this workflow only gates correctness.
+# Run the test suite on every PR and on pushes to main and develop, across the
+# full range of still-supported Python 3 versions (matches requires-python =
+# ">=3.10" in pyproject.toml). develop is the integration branch where feature
+# work lands and is tested before it is promoted to main. No publish step here —
+# releases stay a deliberate manual `twine upload`; this workflow only gates
+# correctness.
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   test:

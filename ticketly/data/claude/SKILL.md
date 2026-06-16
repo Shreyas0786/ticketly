@@ -27,8 +27,10 @@ straight is the whole game:
   by absolute path.
 
 - **The current folder** — wherever the user launched Claude Code; their project. **Write**
-  everything here: `./profiles/<slug>.json`, `./backlogs/<slug>.json`, `./build/`. Each folder
-  is a fresh project with its own profile.
+  everything into a single `./ticketly/` folder: the readable exports (`backlog.md`, `tasks.md`,
+  `backlog.csv`) at the top, and the machine source-of-truth JSONs in a hidden
+  `./ticketly/.data/` (`profile.json`, `backlog.json`). Each folder is a fresh project with its
+  own `./ticketly/`.
 
 If `ticketly home` fails ("command not found"), Ticketly isn't installed — tell the user to
 run the one-time `pipx install ticketly && ticketly install claude` (or `pip install ticketly`),
@@ -128,7 +130,7 @@ question. **Never scrape a *company* name** from `package.json`/`pyproject.toml`
    like a Next.js web app + a FastAPI backend on Postgres — that right?") and let them correct it
    before you save. Anything the code can't tell you (intended scope, priorities, what's
    half-finished on purpose) → **ask, don't guess.** Then save and validate the profile exactly as
-   in step 3 (`ticketly profile profiles/<slug>.json`).
+   in step 3 (`ticketly profile ticketly/.data/profile.json`).
 3. **Find the forward-looking work.** Scan for real signals of what's left to do, and surface what
    you found before writing tickets:
    - `TODO` / `FIXME` / `HACK` / `XXX` markers in the code.
@@ -180,7 +182,7 @@ The stack the user lands on (and the archetype id) flows into the profile in the
 ### 3. Distill into a profile
 
 When the user is ready (e.g. "save the profile", "distill", "looks good"), write what you learned
-to `./profiles/<project-slug>.json` in the current folder, conforming to the profile schema:
+to `./ticketly/.data/profile.json` in the current folder, conforming to the profile schema:
 
 - `stack` — only the layers the user named or accepted (including any you recommended in Discuss and
   they agreed to). Leave a layer out if there's nothing for it.
@@ -209,7 +211,7 @@ Let them confirm or edit before continuing. Validate the saved profile (works fr
 the schema comes from the engine):
 
 ```bash
-ticketly profile profiles/<slug>.json
+ticketly profile ticketly/.data/profile.json
 ```
 
 ### 4. Choose the scope
@@ -243,7 +245,7 @@ Using the confirmed profile, the requirements, and the chosen scope:
    order. Never create a circular or dangling dependency.
 4. **Guardrail** — anything underspecified gets `needs_clarification: true`, not a guess.
 
-Write the result to `./backlogs/<project-slug>.json` in the current folder. It must conform to the
+Write the result to `./ticketly/.data/backlog.json` in the current folder. It must conform to the
 ticket schema at `ENGINE/schema/ticket.schema.json`.
 
 ### 6. Self-check — re-read your own backlog before showing it
@@ -274,7 +276,7 @@ Fix what you find before continuing. Don't show the user a draft you already kno
 Before rendering, run the integrity checker — it catches what the schema can't:
 
 ```bash
-ticketly validate backlogs/<slug>.json
+ticketly validate ticketly/.data/backlog.json
 ```
 
 It reports **errors** (duplicate IDs, dependencies pointing at missing tickets, a Task parented
@@ -291,18 +293,23 @@ you could tick off — this is the same bar as the self-check in step 6.
 ### 8. Render
 
 ```bash
-ticketly render backlogs/<slug>.json --format both --out-dir build/
+ticketly render ticketly/.data/backlog.json --format core --out-dir ticketly/
 ```
 
-This re-checks integrity, then writes `./build/<slug>.md` (epic-grouped, with a topologically
-sorted **Build order** section, review-ready) and `./build/<slug>.csv` (universal tracker import)
-into the current folder. Show the user the Markdown.
+This re-checks integrity, then writes three files into `./ticketly/`:
+- `backlog.md` — the readable plan (epic-grouped, with a plain-language **Your plan** overview and a
+  topologically sorted **Build order** section, review-ready).
+- `tasks.md` — an **agent-ready checklist**: one checkbox per ticket (grouped by epic, with deps and
+  acceptance criteria inline). This is the file a coding agent works from and ticks off as it goes.
+- `backlog.csv` — universal tracker import.
+
+Show the user `backlog.md`, and point them at `tasks.md` as the file to hand to a coding agent.
 
 Both CSVs carry a blank **Assignee** column — Ticketly never invents owners; the user (or their
 team) fills it in later in the tracker.
 
 When the user wants to import into **Notion**, add `--format notion` (or `--format all` for
-everything). It writes `./build/<slug>.notion.csv`, laid out for Notion import: the title leads
+everything). It writes `./ticketly/backlog.notion.csv`, laid out for Notion import: the title leads
 (Notion's page title), `Epic` holds the parent, `Dependencies` are comma-separated for a
 multi-select, acceptance criteria are one per line, and `Assignee` is left empty to fill in. Tell the user to use Notion's
 **Import → CSV → Merge with CSV** into a database, then convert `Status`/`Dependencies` to the
@@ -314,9 +321,9 @@ Generation is a loop, not a one-shot. After rendering, the user edits in plain E
 "split WEB-003 into two", "add acceptance criteria to API-005", "re-estimate INF-002",
 "merge these two", "re-order by dependency", "drop the AUTH epic". For each request:
 
-1. Apply the edit to `./backlogs/<slug>.json`, keeping IDs stable (a split mints new sequential
+1. Apply the edit to `./ticketly/.data/backlog.json`, keeping IDs stable (a split mints new sequential
    IDs; a merge drops one and repoints its dependents).
-2. Re-run `ticketly validate backlogs/<slug>.json` and fix anything it flags.
+2. Re-run `ticketly validate ticketly/.data/backlog.json` and fix anything it flags.
 3. Re-render and show the updated Markdown.
 
 Don't aim for one-shot perfection — make the change the user asked for, keep the backlog valid,

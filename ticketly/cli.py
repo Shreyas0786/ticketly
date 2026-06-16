@@ -34,12 +34,14 @@ from ticketly.home import CLAUDE_SKILL, CODEX_POINTER, DATA_ROOT
 _CODEX_MARKER_START = "# >>> ticketly (codex) >>>"
 _CODEX_MARKER_END = "# <<< ticketly (codex) <<<"
 
-# Generated-file layout, relative to the project folder. The reset command only
-# ever touches files matching these exact (folder, suffix) shapes.
-_PROFILE_DIR = "profiles"
-_BACKLOG_DIR = "backlogs"
-_BUILD_DIR = "build"
-_BUILD_SUFFIXES = (".md", ".csv", ".notion.csv")
+# Generated-file layout, relative to the project folder. Everything Ticketly
+# writes lives under a single ./ticketly/ folder: the human-facing exports at the
+# top, the machine source-of-truth JSONs in a hidden ./ticketly/.data/. The reset
+# command only ever touches files matching these exact (folder, name) shapes.
+_OUTPUT_DIR = "ticketly"
+_DATA_DIR = ".data"
+_EXPORT_FILES = ("tasks.md", "backlog.md", "backlog.csv", "backlog.notion.csv")
+_SOURCE_FILES = ("profile.json", "backlog.json")
 
 
 # --------------------------------------------------------------------------- #
@@ -144,6 +146,15 @@ def _is_ticketly_markdown(path: Path) -> bool:
     return first.startswith("# ") and first.rstrip().endswith("backlog")
 
 
+def _is_ticketly_tasks_md(path: Path) -> bool:
+    """A rendered task checklist starts with a '# <...> tasks' heading."""
+    try:
+        first = next((ln for ln in path.read_text().splitlines() if ln.strip()), "")
+    except Exception:
+        return False
+    return first.startswith("# ") and first.rstrip().endswith("tasks")
+
+
 def _is_ticketly_csv(path: Path) -> bool:
     """A rendered CSV's header row is exactly one of our known headers."""
     try:
@@ -158,30 +169,30 @@ def _is_ticketly_csv(path: Path) -> bool:
 def _looks_like_ours(path: Path) -> bool:
     """Fingerprint a candidate file. Unknown/foreign files are never deleted."""
     name = path.name
-    if name.endswith(".notion.csv") or name.endswith(".csv"):
-        return _is_ticketly_csv(path)
-    if name.endswith(".md"):
+    if name == "tasks.md":
+        return _is_ticketly_tasks_md(path)
+    if name == "backlog.md":
         return _is_ticketly_markdown(path)
-    parent = path.parent.name
-    if parent == _PROFILE_DIR:
+    if name.endswith(".csv"):
+        return _is_ticketly_csv(path)
+    if name == "profile.json":
         return _is_ticketly_profile(path)
-    if parent == _BACKLOG_DIR:
+    if name == "backlog.json":
         return _is_ticketly_backlog(path)
     return False
 
 
-def _candidate_paths(base: Path, slug: str) -> list[Path]:
-    """The exact files Ticketly may have generated for one project slug."""
-    paths = [
-        base / _PROFILE_DIR / f"{slug}.json",
-        base / _BACKLOG_DIR / f"{slug}.json",
+def _candidate_paths(base: Path) -> list[Path]:
+    """The exact files Ticketly may have generated in this project folder:
+    the exports in ./ticketly/ and the source JSONs in ./ticketly/.data/."""
+    out = base / _OUTPUT_DIR
+    return [out / name for name in _EXPORT_FILES] + [
+        out / _DATA_DIR / name for name in _SOURCE_FILES
     ]
-    paths += [base / _BUILD_DIR / f"{slug}{suffix}" for suffix in _BUILD_SUFFIXES]
-    return paths
 
 
-def _safe_targets(base: Path, slug: str) -> tuple[list[Path], list[str]]:
-    """Resolve which of a slug's candidate files are safe to delete.
+def _safe_targets(base: Path) -> tuple[list[Path], list[str]]:
+    """Resolve which of this folder's candidate files are safe to delete.
 
     Returns (deletable, skipped_messages). A file is deletable ONLY if it
     exists, is a regular file (not a symlink), lives strictly inside ``base``,
@@ -190,7 +201,7 @@ def _safe_targets(base: Path, slug: str) -> tuple[list[Path], list[str]]:
     """
     deletable: list[Path] = []
     skipped: list[str] = []
-    for path in _candidate_paths(base, slug):
+    for path in _candidate_paths(base):
         if not path.exists():
             continue
         if path.is_symlink() or not path.is_file():
@@ -208,27 +219,10 @@ def _safe_targets(base: Path, slug: str) -> tuple[list[Path], list[str]]:
     return deletable, skipped
 
 
-def _discover_slugs(base: Path) -> list[str]:
-    """Project slugs that have a backlog or profile JSON in this folder."""
-    slugs: set[str] = set()
-    for sub in (_PROFILE_DIR, _BACKLOG_DIR):
-        d = base / sub
-        if d.is_dir():
-            slugs.update(p.stem for p in d.glob("*.json") if p.is_file())
-    return sorted(slugs)
-
-
 def cmd_reset(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(prog="ticketly reset")
-    parser.add_argument(
-        "project",
-        nargs="?",
-        help="Project slug to reset (the <name> in profiles/<name>.json).",
-    )
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Reset every Ticketly project found in this folder.",
+    parser = argparse.ArgumentParser(
+        prog="ticketly reset",
+        description="Delete the Ticketly files generated in this folder (./ticketly/).",
     )
     parser.add_argument(
         "-y",
@@ -238,26 +232,14 @@ def cmd_reset(argv: list[str]) -> int:
     )
     args = parser.parse_args(argv)
 
-    if not args.project and not args.all:
-        parser.error("name a project to reset, or pass --all")
-    if args.project and args.all:
-        parser.error("pass a project OR --all, not both")
-
     base = Path.cwd().resolve()
-    slugs = _discover_slugs(base) if args.all else [args.project]
-
-    deletable: list[Path] = []
-    skipped: list[str] = []
-    for slug in slugs:
-        d, s = _safe_targets(base, slug)
-        deletable += d
-        skipped += s
+    deletable, skipped = _safe_targets(base)
 
     for msg in skipped:
         print(msg, file=sys.stderr)
 
     if not deletable:
-        print("Nothing to reset — no Ticketly files matched.")
+        print("Nothing to reset — no Ticketly files in ./ticketly/.")
         return 0
 
     print("These files will be deleted:")
@@ -276,6 +258,13 @@ def cmd_reset(argv: list[str]) -> int:
     for path in deletable:
         path.unlink()
         print(f"deleted {path}")
+
+    # Tidy up the now-empty folders (deepest first); leave them if not empty.
+    for d in (base / _OUTPUT_DIR / _DATA_DIR, base / _OUTPUT_DIR):
+        try:
+            d.rmdir()
+        except OSError:
+            pass
     return 0
 
 

@@ -42,8 +42,10 @@ def test_triggers_on_push_and_pull_request(workflow):
     triggers = workflow.get(True) or workflow.get("on")
     assert triggers, "no triggers defined"
     assert "push" in triggers and "pull_request" in triggers
-    assert triggers["push"]["branches"] == ["main"]
-    assert triggers["pull_request"]["branches"] == ["main"]
+    # main is the release branch; develop is the integration branch where work
+    # is tested before promotion to main. Both must gate on CI.
+    assert triggers["push"]["branches"] == ["main", "develop"]
+    assert triggers["pull_request"]["branches"] == ["main", "develop"]
 
 
 def test_matrix_covers_expected_python_versions(workflow):

@@ -86,7 +86,7 @@ def test_header_columns_are_exactly_the_spec():
 # --- cli -----------------------------------------------------------------
 
 def test_cli_accepts_notion_and_all_formats():
-    for fmt in ("notion", "all", "both", "md", "csv"):
+    for fmt in ("notion", "tasks", "core", "all", "both", "md", "csv"):
         args = render.build_parser().parse_args(["b.json", "--format", fmt])
         assert args.format == fmt
 
@@ -97,16 +97,16 @@ def test_cli_rejects_unknown_format():
 
 
 def test_cli_notion_writes_suffixed_file(tmp_path):
-    out_dir = tmp_path / "build"
+    out_dir = tmp_path / "ticketly"
     assert render.main([str(BACKLOG), "--format", "notion", "--out-dir", str(out_dir)]) == 0
-    assert {p.name for p in out_dir.iterdir()} == {"demo-project.notion.csv"}
+    assert {p.name for p in out_dir.iterdir()} == {"backlog.notion.csv"}
 
 
-def test_cli_all_writes_three_files(tmp_path):
-    out_dir = tmp_path / "build"
+def test_cli_all_writes_every_file(tmp_path):
+    out_dir = tmp_path / "ticketly"
     assert render.main([str(BACKLOG), "--format", "all", "--out-dir", str(out_dir)]) == 0
     assert {p.name for p in out_dir.iterdir()} == {
-        "demo-project.md", "demo-project.csv", "demo-project.notion.csv",
+        "backlog.md", "backlog.csv", "backlog.notion.csv", "tasks.md",
     }
 
 
@@ -117,8 +117,8 @@ def test_skill_documents_notion_export():
 
 
 def test_notion_csv_reparses(tmp_path):
-    out_dir = tmp_path / "build"
+    out_dir = tmp_path / "ticketly"
     render.main([str(BACKLOG), "--format", "notion", "--out-dir", str(out_dir)])
-    text = (out_dir / "demo-project.notion.csv").read_text()
+    text = (out_dir / "backlog.notion.csv").read_text()
     reparsed = list(csv.DictReader(io.StringIO(text)))
     assert reparsed and reparsed[0]["Name"]
