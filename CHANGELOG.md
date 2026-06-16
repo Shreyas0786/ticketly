@@ -7,6 +7,8 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-06-15
+
 ### Added
 - `tasks.md` export — an agent-ready checklist: one checkbox per ticket (grouped by
   epic, dependency-ordered), with dependencies and acceptance criteria inline.
@@ -64,5 +66,7 @@ First public release on PyPI: `pipx install ticketly`.
 - License is now free-to-use with no copying/modifying/reselling (was fully
   proprietary/no-use).
 
-[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/Shreyas0786/ticketly/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/Shreyas0786/ticketly/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Shreyas0786/ticketly/releases/tag/v1.0.0

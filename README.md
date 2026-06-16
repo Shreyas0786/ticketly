@@ -144,13 +144,15 @@ closed unmerged.** Please don't open one.
 
 What *is* genuinely welcome — and the best way to help — is **bug reports, feature requests, and
 feedback**. Open a [GitHub Issue](https://github.com/Shreyas0786/ticketly/issues) (there are short
-templates for bugs and features); see [CONTRIBUTING.md](CONTRIBUTING.md) for the full policy and the
-[LICENSE](LICENSE) for usage terms.
+templates for bugs and features); see
+[CONTRIBUTING.md](https://github.com/Shreyas0786/ticketly/blob/main/CONTRIBUTING.md) for the full
+policy and the [LICENSE](https://github.com/Shreyas0786/ticketly/blob/main/LICENSE) for usage terms.
 
 ## Security
 
 Found a security issue? **Please don't open a public issue** — report it privately via the
-repository's **Security** tab ("Report a vulnerability"). See [SECURITY.md](SECURITY.md) for details.
+repository's **Security** tab ("Report a vulnerability"). See
+[SECURITY.md](https://github.com/Shreyas0786/ticketly/blob/main/SECURITY.md) for details.
 
 ---
 
