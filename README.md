@@ -1,8 +1,16 @@
-# Ticketly
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Shreyas0786/ticketly/main/assets/ticketly-logo-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Shreyas0786/ticketly/main/assets/ticketly-logo-light.png">
+  <img alt="Ticketly" src="https://raw.githubusercontent.com/Shreyas0786/ticketly/main/assets/ticketly-logo-light.png" width="340">
+</picture>
+
+**Turn a messy project idea into a clean, structured backlog — without leaving Claude Code or Codex.**
 
 [![PyPI downloads](https://static.pepy.tech/badge/ticketly)](https://pepy.tech/project/ticketly)
 
-**Turn a messy project idea into a clean, structured backlog — without leaving Claude Code or Codex.**
+</div>
 
 Describe what you're building, and Ticketly breaks it into professional tickets: big areas split
 into individual tasks, each with a clear description, acceptance criteria, an effort estimate, and

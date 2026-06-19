@@ -7,6 +7,11 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Brand assets in `assets/` (logo, icon, social card) and a logo header in the
+  README that swaps between GitHub's light and dark themes, with a PyPI-safe
+  fallback so it renders on the PyPI page too.
+
 ## [1.2.0] — 2026-06-15
 
 ### Added
