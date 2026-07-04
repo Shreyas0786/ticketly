@@ -71,3 +71,23 @@ def test_build_order_section_lists_tasks_in_dependency_order():
     section = md.split("## Build order", 1)[1]
     # REL-002 has no deps; REL-005 depends transitively on it — must come later
     assert section.index("REL-002") < section.index("REL-005")
+
+
+def test_build_order_lines_join_id_and_title_with_ascii_hyphen():
+    data = render.load_backlog(CLEAN)
+    section = render.render_markdown(data).split("## Build order", 1)[1].split("##", 1)[0]
+    numbered = [ln for ln in section.splitlines() if ln[:1].isdigit()]
+    assert numbered, "no numbered build-order lines rendered"
+    for ln in numbered:
+        assert " - " in ln  # ID and title joined by an ASCII hyphen
+        assert "—" not in ln  # the em dash must not survive here
+
+
+def test_your_plan_reference_lines_use_ascii_hyphen():
+    data = render.load_backlog(CLEAN)
+    md = render.render_markdown(data)
+    section = md.split("## Your plan", 1)[1].split("## Build order", 1)[0]
+    refs = [ln for ln in section.splitlines() if ln.startswith("- ")]
+    assert refs, "no reference bullets rendered under Your plan"
+    for ln in refs:
+        assert "—" not in ln  # ticket/epic references must not use the em dash

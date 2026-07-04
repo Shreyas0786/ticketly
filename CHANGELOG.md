@@ -7,6 +7,15 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-07-04
+
+### Fixed
+- Ticket references in the rendered Markdown now join the ticket ID and title with
+  a plain ASCII hyphen (`ARC-001 - Freeze core status vocabulary`) instead of an em
+  dash. Affects the Build order and Your plan sections and the `tasks.md` checklist,
+  so references copy, paste, and parse cleanly in downstream tools. Section headings
+  and page titles are unchanged.
+
 ## [1.2.0] — 2026-06-15
 
 ### Added
