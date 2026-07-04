@@ -230,15 +230,15 @@ def _md_your_plan(tickets: list[dict]) -> list[str]:
     lines = ["## Your plan", ""]
     if start_now:
         first = start_now[0]
-        lines += [f"**Where to start:** {first} — {titles[first]}.", ""]
+        lines += [f"**Where to start:** {first} - {titles[first]}.", ""]
         lines += ["**Start today** — nothing is blocking these:", ""]
-        lines += [f"- {tid} — {titles[tid]}" for tid in start_now]
+        lines += [f"- {tid} - {titles[tid]}" for tid in start_now]
         lines.append("")
     if later:
         lines += ["**Comes after** — each of these waits on something above:", ""]
         for tid in later:
             waits = ", ".join(task_deps(by_id[tid]))
-            lines.append(f"- {tid} — {titles[tid]} (waits on {waits})")
+            lines.append(f"- {tid} - {titles[tid]} (waits on {waits})")
         lines.append("")
 
     epics = _epics(tickets)
@@ -248,7 +248,7 @@ def _md_your_plan(tickets: list[dict]) -> list[str]:
             child = _tasks_for(epic["id"], tickets)
             points = sum(t["effort"] for t in child)
             lines.append(
-                f"- {epic['id']} — {epic['title']}: {_size_word(points)} "
+                f"- {epic['id']} - {epic['title']}: {_size_word(points)} "
                 f"({_count(len(child), 'ticket')})"
             )
         lines.append("")
@@ -297,7 +297,7 @@ def _md_build_order(tickets: list[dict]) -> list[str]:
         return []
     titles = {t["id"]: t["title"] for t in tickets}
     lines = ["## Build order", "", "Work tickets top to bottom; each ticket's dependencies come before it.", ""]
-    lines += [f"{i}. {tid} — {titles[tid]}" for i, tid in enumerate(order, 1)]
+    lines += [f"{i}. {tid} - {titles[tid]}" for i, tid in enumerate(order, 1)]
     lines.append("")
     return lines
 
@@ -318,7 +318,7 @@ def _tasks_md_block(t: dict) -> list[str]:
     box = "x" if t["status"] == "Done" else " "
     deps = ", ".join(t.get("dependencies") or []) or "nothing"
     lines = [
-        f"- [{box}] **{t['id']} — {t['title']}**{_tasks_md_marker(t)}",
+        f"- [{box}] **{t['id']} - {t['title']}**{_tasks_md_marker(t)}",
         f"  - Effort {t['effort']} · Depends on: {deps}",
     ]
     lines += [f"  - {c}" for c in t.get("acceptance_criteria") or []]

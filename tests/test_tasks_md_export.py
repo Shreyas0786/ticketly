@@ -65,7 +65,7 @@ def test_one_checkbox_per_task_none_for_epics():
     checkboxes = [ln for ln in md.splitlines() if ln.startswith("- [")]
     assert len(checkboxes) == 3  # three Tasks, zero Epics
     for tid in ("API-001", "API-002", "INF-001"):
-        assert f"**{tid} — " in md
+        assert f"**{tid} - " in md
     # epic ids appear only as headings, never as checkboxes
     assert "- [ ] **EPIC-API" not in md
 
@@ -78,8 +78,8 @@ def test_status_maps_to_the_checkbox():
         _task("API-003", "EPIC-API", status="To Do"),
     )
     md = render.render_tasks_md(data)
-    assert "- [x] **API-001 — " in md
-    assert "- [ ] **API-002 — " in md and "🚧" in md
+    assert "- [x] **API-001 - " in md
+    assert "- [ ] **API-002 - " in md and "🚧" in md
     todo_line = next(ln for ln in md.splitlines() if "API-003" in ln)
     assert todo_line.startswith("- [ ]") and "🚧" not in todo_line
 
@@ -88,6 +88,16 @@ def test_needs_clarification_is_flagged():
     data = _backlog(_epic("EPIC-API"), _task("API-001", "EPIC-API", needs_clarification=True))
     line = next(ln for ln in render.render_tasks_md(data).splitlines() if "API-001" in ln)
     assert "⚠️" in line
+
+
+# --- id/title join uses an ASCII hyphen, not an em dash ------------------
+
+def test_checkbox_joins_id_and_title_with_ascii_hyphen():
+    data = _backlog(_epic("EPIC-API"), _task("API-001", "EPIC-API", title="Do the thing"))
+    line = next(ln for ln in render.render_tasks_md(data).splitlines()
+                if ln.startswith("- ["))
+    assert "**API-001 - Do the thing**" in line
+    assert "—" not in line  # the em dash must not survive on a ticket reference
 
 
 # --- inline detail -------------------------------------------------------
