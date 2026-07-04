@@ -7,10 +7,19 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-07-04
+
 ### Added
 - Brand assets in `assets/` (logo, icon, social card) and a logo header in the
   README that swaps between GitHub's light and dark themes, with a PyPI-safe
   fallback so it renders on the PyPI page too.
+
+### Fixed
+- Ticket references in the rendered Markdown now join the ticket ID and title with
+  a plain ASCII hyphen (`ARC-001 - Freeze core status vocabulary`) instead of an em
+  dash. Affects the Build order and Your plan sections and the `tasks.md` checklist,
+  so references copy, paste, and parse cleanly in downstream tools. Section headings
+  and page titles are unchanged.
 
 ## [1.2.0] — 2026-06-15
 
@@ -71,7 +80,8 @@ First public release on PyPI: `pipx install ticketly`.
 - License is now free-to-use with no copying/modifying/reselling (was fully
   proprietary/no-use).
 
-[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/Shreyas0786/ticketly/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Shreyas0786/ticketly/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Shreyas0786/ticketly/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Shreyas0786/ticketly/releases/tag/v1.0.0
