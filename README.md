@@ -12,9 +12,10 @@
 
 </div>
 
-Describe what you're building, and Ticketly breaks it into professional tickets: big areas split
-into individual tasks, each with a clear description, acceptance criteria, an effort estimate, and
-dependencies — ready to drop into Notion or any tracker.
+**Ticketly is a command-line tool that turns a project idea, spec, or existing codebase into a
+structured backlog of tickets — epics broken into tasks, each with a description, acceptance
+criteria, an effort estimate, and dependencies — exported to Markdown, CSV, or Notion.** It runs
+inside Claude Code or Codex on your existing subscription: no API key, no cost per run.
 
 ## Who it's for
 
@@ -143,6 +144,43 @@ Your code and other files are never touched.
 - Uses **no API key** and never asks for secrets.
 - Only reads/writes the folder you run it in. `ticketly install` just copies the Claude Code skill
   and/or appends a Codex pointer into your agent's config — no `sudo`, no remote scripts.
+
+## FAQ
+
+### How do I generate tickets from a PRD or spec?
+
+Install Ticketly, open the folder with your spec, and run `/ticketly` in Claude Code (or say "use
+Ticketly" in Codex). Describe or paste the spec, answer its questions, and it writes a full backlog
+to `ticketly/` — epics, tickets, acceptance criteria, effort, and dependencies.
+
+### How do I turn an existing codebase into a backlog?
+
+Run `/ticketly` inside the repo. It reads the code, infers the stack, and plans the work that's
+*left* — TODOs, half-built features, missing tests — rather than re-planning what already exists.
+
+### Can I import the tickets into Jira, Linear, or Notion?
+
+Yes. Ticketly exports `ticketly/backlog.csv`, which imports into any tracker that accepts CSV
+(Jira, Linear, Asana, Trello). For Notion, use `--format notion`. There's a blank **Assignee**
+column you fill in on the tracker side.
+
+### Does Ticketly need an API key or a paid plan?
+
+No. It runs inside Claude Code or Codex using the subscription you already have. Nothing is sent
+anywhere else, and there's no per-run cost.
+
+### How is this different from just asking Claude to write tickets?
+
+Ad-hoc prompting gives you a different shape of output every time, invents details it doesn't know,
+and doesn't validate anything. Ticketly runs a fixed interview, refuses to guess (it flags
+undecided things for clarification instead of making them up), validates the result against a
+schema, and exports the same clean structure every run.
+
+### Can a coding agent work through the tickets?
+
+Yes — that's what `ticketly/tasks.md` is for. It's a checklist with one checkbox per ticket,
+dependencies and acceptance criteria inline. Hand it to Claude Code or Cursor and it can tick them
+off as it goes.
 
 ## Contributing & Feedback
 
