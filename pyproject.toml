@@ -18,7 +18,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Shreyas0786/ticketly"
+Homepage = "https://ticketly-growth.vercel.app/"
+Documentation = "https://ticketly-growth.vercel.app/guides"
+Source = "https://github.com/Shreyas0786/ticketly"
+Issues = "https://github.com/Shreyas0786/ticketly/issues"
 Changelog = "https://github.com/Shreyas0786/ticketly/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]

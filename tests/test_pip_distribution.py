@@ -50,6 +50,15 @@ def test_pyproject_declares_console_script():
 
 
 @pytest.mark.skipif(tomllib is None, reason="tomllib needs Python 3.11+")
+def test_pyproject_links_to_site_docs_and_source():
+    urls = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["urls"]
+    assert urls["Homepage"] == "https://ticketly-growth.vercel.app/"
+    assert urls["Documentation"] == "https://ticketly-growth.vercel.app/guides"
+    assert urls["Source"] == "https://github.com/Shreyas0786/ticketly"
+    assert urls["Issues"] == "https://github.com/Shreyas0786/ticketly/issues"
+
+
+@pytest.mark.skipif(tomllib is None, reason="tomllib needs Python 3.11+")
 def test_pyproject_bundles_every_data_dir():
     data = tomllib.loads((ROOT / "pyproject.toml").read_text())
     globs = data["tool"]["setuptools"]["package-data"]["ticketly"]
