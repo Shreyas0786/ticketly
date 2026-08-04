@@ -46,3 +46,20 @@ def test_no_dev_status_cruft():
 
 def test_states_no_api_key():
     assert "no api key" in LOWER
+
+
+def test_links_to_official_growth_guides():
+    for url in (
+        "https://ticketly-growth.vercel.app/",
+        "https://ticketly-growth.vercel.app/install",
+        "https://ticketly-growth.vercel.app/codex",
+        "https://ticketly-growth.vercel.app/claude-code",
+        "https://ticketly-growth.vercel.app/guides/post-mvp-codebase-to-next-release-backlog",
+    ):
+        assert url in README
+
+
+def test_distinguishes_local_engine_from_host_agent():
+    assert "validation and export engine" in LOWER
+    assert "repository inspection and conversational reasoning" in LOWER
+    assert "settings and policies" in LOWER
