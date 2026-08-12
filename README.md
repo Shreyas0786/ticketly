@@ -177,8 +177,9 @@ column you fill in on the tracker side.
 
 ### Does Ticketly need an API key or a paid plan?
 
-No. It runs inside Claude Code or Codex using the subscription you already have. Nothing is sent
-anywhere else, and there's no per-run cost.
+No. It runs inside Claude Code or Codex using the subscription you already have — no separate
+Ticketly API key, and no Ticketly usage charge. Ticketly's own engine adds no network calls; the
+conversation runs through your coding agent and follows that agent's data handling.
 
 ### How is this different from just asking Claude to write tickets?
 
