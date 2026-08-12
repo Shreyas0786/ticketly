@@ -41,10 +41,13 @@ advisory is published with credit to you, unless you prefer to remain anonymous.
 
 ## Scope and design notes
 
-Ticketly is **local by design** — it makes no network calls, uses no API key,
-stores no secrets, and only reads and writes the folder you run it in (see
-[README — Safe by design](README.md#safe-by-design)). This deliberately keeps
-the attack surface small. Reports most relevant to Ticketly include, for example:
+Ticketly's deterministic validation and export engine is **local by design** —
+it adds no network calls or telemetry, uses no separate API key, stores no
+secrets, and only reads and writes the folder you run it in (see
+[README — Safe by design](README.md#safe-by-design)). Repository inspection and
+conversational reasoning happen in Claude Code or Codex and follow that host's
+settings and policies. This boundary keeps Ticketly's own attack surface small.
+Reports most relevant to Ticketly include, for example:
 
 - A path-handling flaw that lets it read or write **outside** the current folder.
 - A way `ticketly install` could alter files beyond the agent config it documents.

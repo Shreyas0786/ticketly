@@ -10,6 +10,12 @@
 
 [![PyPI downloads](https://static.pepy.tech/badge/ticketly)](https://pepy.tech/project/ticketly)
 
+[Website](https://ticketly-growth.vercel.app/) ·
+[Install guide](https://ticketly-growth.vercel.app/install) ·
+[Codex guide](https://ticketly-growth.vercel.app/codex) ·
+[Claude Code guide](https://ticketly-growth.vercel.app/claude-code) ·
+[Post-MVP example](https://ticketly-growth.vercel.app/guides/post-mvp-codebase-to-next-release-backlog)
+
 </div>
 
 **Ticketly is a command-line tool that turns a project idea, spec, or existing codebase into a
@@ -45,8 +51,9 @@ describe your idea, you can use it.
 ## How it works
 
 Ticketly runs **inside your AI coding agent — Claude Code or Codex — using your existing
-subscription, no API key, no cost per run.** You talk; it does the planning; a small local engine
-handles the exact, repeatable parts (validation and exporting). A full run goes:
+subscription, with no separate Ticketly API key or Ticketly usage charge.** You talk; the agent
+does the reasoning; a small local engine handles the exact, repeatable parts (validation and
+exporting). A full run goes:
 
 1. **Start** — you give your project (and company, if you want one in the title). It never guesses
    these. **On an existing repo it skips this and reads the code instead** — no company needed.
@@ -140,10 +147,14 @@ Your code and other files are never touched.
 
 ## Safe by design
 
-- Runs **entirely on your machine** — no network calls, no telemetry, nothing sent anywhere.
-- Uses **no API key** and never asks for secrets.
-- Only reads/writes the folder you run it in. `ticketly install` just copies the Claude Code skill
-  and/or appends a Codex pointer into your agent's config — no `sudo`, no remote scripts.
+- Ticketly's deterministic validation and export engine runs **entirely on your machine** and adds
+  no network calls or telemetry.
+- Repository inspection and conversational reasoning happen in Claude Code or Codex, so their data
+  handling follows the settings and policies of the agent you use.
+- Ticketly uses **no separate API key** and never asks for secrets.
+- The local engine only reads/writes the folder you run it in. `ticketly install` just copies the
+  Claude Code skill and/or appends a Codex pointer into your agent's config — no `sudo`, no remote
+  scripts.
 
 ## FAQ
 

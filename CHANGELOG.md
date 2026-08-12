@@ -7,6 +7,14 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.2.2] — 2026-08-12
+
+### Changed
+- PyPI project links now point to Ticketly's website and practical guides, while
+  keeping the GitHub source, issues, and changelog links available.
+- README discovery links now connect users directly to the install, Codex,
+  Claude Code, and post-MVP workflows.
+
 ## [1.2.1] — 2026-07-04
 
 ### Added
@@ -80,7 +88,8 @@ First public release on PyPI: `pipx install ticketly`.
 - License is now free-to-use with no copying/modifying/reselling (was fully
   proprietary/no-use).
 
-[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/Shreyas0786/ticketly/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/Shreyas0786/ticketly/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Shreyas0786/ticketly/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Shreyas0786/ticketly/compare/v1.0.0...v1.1.0
