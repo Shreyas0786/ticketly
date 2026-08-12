@@ -63,3 +63,9 @@ def test_distinguishes_local_engine_from_host_agent():
     assert "validation and export engine" in LOWER
     assert "repository inspection and conversational reasoning" in LOWER
     assert "settings and policies" in LOWER
+
+
+def test_makes_no_unscoped_privacy_claim():
+    # the agent host does make network calls; only the local engine may claim otherwise
+    assert "nothing is sent anywhere" not in LOWER
+    assert "nothing sent anywhere" not in LOWER
