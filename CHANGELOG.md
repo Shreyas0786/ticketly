@@ -7,6 +7,23 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.2.2] — 2026-08-12
+
+### Added
+- README now opens with a plain summary of what Ticketly is, and closes with an
+  FAQ covering specs, existing codebases, tracker imports, API keys, and handing
+  the backlog to a coding agent.
+- Links to the Ticketly website and guides from the README and the package
+  metadata (`Homepage`, `Documentation`), with GitHub kept as `Source` and
+  `Issues`.
+
+### Changed
+- Privacy wording now separates Ticketly's local validation and export engine —
+  which adds no network calls or telemetry — from the repository inspection and
+  conversational reasoning that happen inside Claude Code or Codex under that
+  agent's own settings and policies. Previously the README and `SECURITY.md`
+  claimed nothing was sent anywhere, which overlooked the host agent.
+
 ## [1.2.1] — 2026-07-04
 
 ### Added
@@ -80,7 +97,8 @@ First public release on PyPI: `pipx install ticketly`.
 - License is now free-to-use with no copying/modifying/reselling (was fully
   proprietary/no-use).
 
-[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/Shreyas0786/ticketly/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/Shreyas0786/ticketly/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Shreyas0786/ticketly/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Shreyas0786/ticketly/compare/v1.0.0...v1.1.0
