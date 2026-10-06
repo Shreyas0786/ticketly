@@ -7,7 +7,7 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
-Planned for 1.3.0.
+## [1.3.0] — 2026-10-06
 
 ### Added
 - **Hours-based points.** A new backlog asks once whether to size work in hours-based points or
@@ -139,7 +139,8 @@ First public release on PyPI: `pipx install ticketly`.
 - License is now free-to-use with no copying/modifying/reselling (was fully
   proprietary/no-use).
 
-[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Shreyas0786/ticketly/compare/v1.2.2...v1.3.0
 [1.2.2]: https://github.com/Shreyas0786/ticketly/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/Shreyas0786/ticketly/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Shreyas0786/ticketly/compare/v1.1.0...v1.2.0

@@ -1,6 +1,6 @@
 """Structural contracts for the estimation release: documentation, planning
 instructions, house style, packaged example, CLI help, reset recognition, and the
-version/changelog state of this feature branch.
+version/changelog release records.
 """
 
 import json
@@ -204,12 +204,32 @@ def test_reset_does_not_broaden_to_lookalike_csvs(tmp_path):
 
 # --- release state ---------------------------------------------------------------------
 
-def test_version_stays_at_1_2_2_on_the_feature_branch():
-    assert re.search(r'^version = "1\.2\.2"$', PYPROJECT, re.M)
+def _changelog_section(version):
+    """The body of one released `## [x.y.z] — date` section."""
+    match = re.search(rf"^## \[{re.escape(version)}\] — (\d{{4}}-\d{{2}}-\d{{2}})\n(.*?)(?=^## \[|^\[Unreleased\]:|\Z)",
+                      CHANGELOG, re.M | re.S)
+    assert match, f"no dated ## [{version}] section"
+    return match.group(1), match.group(2)
 
 
-def test_changelog_records_the_feature_under_unreleased():
-    unreleased = CHANGELOG.split("## [Unreleased]")[1].split("## [1.2.2]")[0]
-    for phrase in ("1.3.0", "Hours-based points", "ticketly recalc", "ticketly switch-model",
-                   "ticketly import", "In Review"):
-        assert phrase in unreleased, phrase
+def test_hours_based_points_are_recorded_in_their_1_3_0_release():
+    released_on, notes = _changelog_section("1.3.0")
+    assert released_on == "2026-10-06"
+    for phrase in ("Hours-based points", "ticketly recalc", "ticketly switch-model",
+                   "ticketly import", "In Review", "Existing backlogs without an `estimation`"):
+        assert phrase in notes, phrase
+    assert "Planned for" not in notes  # a released section no longer reads as a plan
+
+
+def test_package_version_has_a_dated_changelog_section():
+    version = re.search(r'^version = "(\d+\.\d+\.\d+)"$', PYPROJECT, re.M).group(1)
+    _changelog_section(version)  # asserts the dated section exists
+
+
+def test_changelog_comparison_links_are_consistent():
+    released = re.findall(r"^## \[(\d+\.\d+\.\d+)\] — ", CHANGELOG, re.M)  # newest first
+    base = "https://github.com/Shreyas0786/ticketly"
+    assert f"[Unreleased]: {base}/compare/v{released[0]}...HEAD" in CHANGELOG
+    for newer, older in zip(released, released[1:]):
+        assert f"[{newer}]: {base}/compare/v{older}...v{newer}" in CHANGELOG, newer
+    assert f"[{released[-1]}]: {base}/releases/tag/v{released[-1]}" in CHANGELOG
