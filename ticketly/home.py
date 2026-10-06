@@ -26,6 +26,7 @@ PROFILE_SCHEMA = DATA_ROOT / "profile" / "profile.schema.json"
 HOUSE_STYLE_SCHEMA = DATA_ROOT / "house-style" / "house-style.schema.json"
 HOUSE_STYLE_DEFAULT = DATA_ROOT / "house-style" / "default.json"
 FEW_SHOT_BACKLOG = DATA_ROOT / "examples" / "house-style-backlog.json"
+HOURS_EXAMPLE_BACKLOG = DATA_ROOT / "examples" / "hours-backlog.json"
 ARCHETYPES = DATA_ROOT / "archetypes" / "archetypes.json"
 ARCHETYPES_SCHEMA = DATA_ROOT / "archetypes" / "archetypes.schema.json"
 # Agent front-doors deployed by `ticketly install`.

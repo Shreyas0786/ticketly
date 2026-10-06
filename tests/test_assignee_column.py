@@ -63,8 +63,12 @@ def test_csv_columns_include_assignee():
     assert "assignee" in render.CSV_COLUMNS
 
 
-def test_csv_assignee_is_last_column():
-    assert render.CSV_COLUMNS[-1] == "assignee"
+def test_csv_assignee_keeps_its_original_position():
+    # assignee stays the last of the original columns, in its original place; the
+    # estimation and tracking columns are appended after it (approved for 1.3.0)
+    assert render.LEGACY_CSV_COLUMNS[-1] == "assignee"
+    assert render.CSV_COLUMNS.index("assignee") == 10
+    assert render.CSV_COLUMNS[:11] == render.LEGACY_CSV_COLUMNS
 
 
 def test_csv_header_carries_assignee(backlog):

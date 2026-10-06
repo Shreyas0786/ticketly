@@ -7,6 +7,48 @@ All notable changes to Ticketly are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-10-06
+
+### Added
+- **Hours-based points.** A new backlog asks once whether to size work in hours-based points or
+  Fibonacci points, saves the choice in its `estimation` block, and shows it in every export.
+  Hours-based Tasks carry an `estimate` — a quarter-hour breakdown (implementation, testing,
+  self-review, handoff), a difficulty level 1–4 with a reason, and a confidence — and `effort` is
+  calculated as hours × multiplier (1.00 / 1.10 / 1.25 / 1.40), with Decimal arithmetic and half-up
+  rounding to one decimal. Each backlog freezes the rubric its estimates were made under. Tasks that
+  can't be estimated show as **Unestimated**, and totals that include them are marked partial.
+- `ticketly recalc` — recalculates points with the one shared calculation and records each Task's
+  baseline and every later estimate, owner and status change in its `history` (an estimate change
+  needs `--reason`; `--approved-by` records approved growth).
+- `ticketly switch-model --to hours --reason ...` — moves a Fibonacci backlog to hours-based points,
+  keeping each Task's old points, owner and status as a legacy estimate. Legacy and new totals are
+  reported separately. Tasks completed at the switch keep their legacy points, credited to the owner
+  recorded at the switch, stay out of the new totals and partial flags, and can't be re-estimated.
+- `ticketly import` — brings an edited standard or Notion CSV back into the backlog (owners, status,
+  due dates, priority, estimate inputs), with per-field export baselines to separate untouched stale
+  values from conflicting edits, `--dry-run`, all-or-nothing validation, and an atomic write.
+- Ownership and progress: an **In Review** status (Done now means reviewed work that meets its
+  acceptance criteria), per-person assigned-versus-Done totals with hours and points kept apart, and
+  optional `work_kind` (cleanup, integration, client preparation, investigation) for explicit work.
+- Split/takeover tracking with `split_from` (`replaced` or `additional` scope). A full takeover is a
+  reassignment. The validator rejects dangling or circular splits and splits that leave the original
+  nothing, and holds every chain of replaced splits — repeated and nested ones included — to the
+  original estimate, even after later re-estimates, unless the growth was approved.
+- Epic totals in `backlog.md` and both CSVs, kept separate from the Epics' internal `effort` of 0.
+- A worked hours-based example (`examples/hours-backlog.json`) and an optional `hours_rubric` in the
+  house style.
+
+### Changed
+- Both CSV exports gain estimation, tracking, total and baseline columns, appended after the
+  existing columns, which keep their order. `ticketly reset` still recognises CSVs exported before
+  this change.
+- `ticketly validate` checks the backlog against the schema before its integrity checks, and every
+  command refuses `NaN` / `Infinity` values. Difficulty levels written as whole decimals (`2.0`) are
+  read as whole levels; fractional or out-of-range levels are refused.
+- The CLI help shows the current `ticketly reset [-y]` usage.
+
+Existing backlogs without an `estimation` block keep validating and rendering as Fibonacci backlogs.
+
 ## [1.2.2] — 2026-08-12
 
 ### Added
@@ -97,7 +139,8 @@ First public release on PyPI: `pipx install ticketly`.
 - License is now free-to-use with no copying/modifying/reselling (was fully
   proprietary/no-use).
 
-[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/Shreyas0786/ticketly/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Shreyas0786/ticketly/compare/v1.2.2...v1.3.0
 [1.2.2]: https://github.com/Shreyas0786/ticketly/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/Shreyas0786/ticketly/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Shreyas0786/ticketly/compare/v1.1.0...v1.2.0

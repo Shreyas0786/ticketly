@@ -11,10 +11,13 @@ Subcommands::
     ticketly home                       print the engine's bundled-data path (ENGINE)
     ticketly render   BACKLOG [opts]    render a backlog to Markdown/CSV/Notion
     ticketly validate BACKLOG           integrity-check a backlog
+    ticketly recalc   BACKLOG [opts]    recalculate points and record changes
+    ticketly switch-model BACKLOG ...   move a backlog to hours-based points
+    ticketly import   CSV [opts]        import an edited CSV / Notion export
     ticketly profile  PROFILE           validate a project profile
     ticketly archetypes [LIBRARY]       validate the archetype library
     ticketly install  claude|codex|all  wire Ticketly into your AI coding agent
-    ticketly reset    PROJECT [--all]   safely remove a project's generated files
+    ticketly reset    [-y]              safely remove this folder's generated files
 """
 
 from __future__ import annotations
@@ -24,9 +27,12 @@ import json
 import os
 import shutil
 import sys
+from datetime import date
 from pathlib import Path
 
-from ticketly import archetypes, profile, render, validate
+from ticketly import archetypes, csv_import, profile, render, validate
+from ticketly import baseline as bl
+from ticketly import estimate as est
 from ticketly.home import CLAUDE_SKILL, CODEX_POINTER, DATA_ROOT
 
 # Idempotency markers for the Codex AGENTS.md block. Exact-line matched (never
@@ -155,15 +161,24 @@ def _is_ticketly_tasks_md(path: Path) -> bool:
     return first.startswith("# ") and first.rstrip().endswith("tasks")
 
 
+# Every CSV header Ticketly has ever written: the current standard and Notion
+# layouts, and the layouts before the estimation columns were appended. Exact
+# matches only, so reset never deletes a CSV that merely looks similar.
+_KNOWN_CSV_HEADERS = frozenset({
+    ",".join(render.CSV_COLUMNS),
+    ",".join(h for h, _ in render.NOTION_COLUMNS),
+    ",".join(render.LEGACY_CSV_COLUMNS),
+    ",".join(render.LEGACY_NOTION_HEADERS),
+})
+
+
 def _is_ticketly_csv(path: Path) -> bool:
     """A rendered CSV's header row is exactly one of our known headers."""
     try:
         header = path.read_text().splitlines()[0] if path.read_text() else ""
     except Exception:
         return False
-    plain = ",".join(render.CSV_COLUMNS)
-    notion = ",".join(h for h, _ in render.NOTION_COLUMNS)
-    return header == plain or header == notion
+    return header in _KNOWN_CSV_HEADERS
 
 
 def _looks_like_ours(path: Path) -> bool:
@@ -269,11 +284,106 @@ def cmd_reset(argv: list[str]) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# recalc / switch-model — the deterministic estimate bookkeeping
+# --------------------------------------------------------------------------- #
+def _on_date(value: date | None) -> str:
+    return value.isoformat() if value else bl.today()
+
+
+def _finish(path: Path, result: est.Result, dry_run: bool, done: str) -> int:
+    if result.errors:
+        for err in result.errors:
+            print(f"ERROR: {err}", file=sys.stderr)
+        print(f"\n{len(result.errors)} error(s); nothing was written.", file=sys.stderr)
+        return 1
+    if not result.changes:
+        print("Nothing to change; the backlog was left untouched.")
+        return 0
+    # Check the complete result first, so changes are only listed once they're valid.
+    try:
+        render.validate_backlog(result.data)
+        problems = validate.errors(validate.check_integrity(result.data))
+    except Exception as exc:  # schema errors in the proposed result
+        problems = [exc]
+    if problems:
+        for problem in problems:
+            print(f"ERROR: {problem}", file=sys.stderr)
+        print(f"\nthe result does not validate ({len(problems)} error(s)); nothing was written.",
+              file=sys.stderr)
+        return 1
+    for change in result.changes:
+        print(change)
+    if dry_run:
+        print(f"\ndry run: {len(result.changes)} change(s) would be made; nothing was written.")
+        return 0
+    render.save_backlog(path, result.data)
+    print(f"\n{done} {path}")
+    return 0
+
+
+def cmd_recalc(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(
+        prog="ticketly recalc",
+        description="Recalculate hours-based points from each Task's estimate inputs and record "
+        "estimate, owner and status changes in its history. A changed estimate needs --reason.",
+    )
+    parser.add_argument("backlog", help="Path to the backlog JSON.")
+    parser.add_argument("--reason", default=None,
+                        help="Why estimates changed (required when an existing estimate changed).")
+    parser.add_argument("--approved-by", default=None,
+                        help="Who approved an estimate increase. Needed when re-estimating a "
+                        "split family above what it was estimated at before the split.")
+    parser.add_argument("--on", type=date.fromisoformat, default=None,
+                        help="Date to record on history entries (YYYY-MM-DD; default today).")
+    parser.add_argument("--dry-run", action="store_true", help="Show the changes; write nothing.")
+    args = parser.parse_args(argv)
+    path = Path(args.backlog)
+    try:
+        data = validate.read_json(path)
+    except ValueError as exc:
+        print(f"ERROR: {exc}\n\nnothing was written.", file=sys.stderr)
+        return 1
+    bad = validate.non_finite_paths(data)
+    if bad:
+        print(f"ERROR: {bad[0]}: not a finite number\n\nnothing was written.", file=sys.stderr)
+        return 1
+    result = est.reconcile(data, on=_on_date(args.on), reason=args.reason,
+                           approved_by=args.approved_by)
+    return _finish(path, result, args.dry_run, "updated")
+
+
+def cmd_switch_model(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(
+        prog="ticketly switch-model",
+        description="Move a Fibonacci backlog to hours-based points. Old points are kept as "
+        "legacy estimates (with owner and status) and every Task starts Unestimated until it is "
+        "re-estimated. Legacy and new totals are reported separately.",
+    )
+    parser.add_argument("backlog", help="Path to the backlog JSON.")
+    parser.add_argument("--to", required=True, choices=[est.MODEL_HOURS],
+                        help="The model to switch to (hours).")
+    parser.add_argument("--reason", required=True, help="Why the estimation model is changing.")
+    parser.add_argument("--on", type=date.fromisoformat, default=None,
+                        help="Date to record (YYYY-MM-DD; default today).")
+    parser.add_argument("--dry-run", action="store_true", help="Show the changes; write nothing.")
+    args = parser.parse_args(argv)
+    path = Path(args.backlog)
+    try:
+        data = render.load_backlog(path)
+    except Exception as exc:
+        print(f"the backlog is not valid, fix it before switching:\n{exc}", file=sys.stderr)
+        return 1
+    result = est.switch_model(data, to=args.to, reason=args.reason, on=_on_date(args.on))
+    return _finish(path, result, args.dry_run, "switched")
+
+
+# --------------------------------------------------------------------------- #
 # dispatch
 # --------------------------------------------------------------------------- #
 _PASSTHROUGH = {
     "render": render.main,
     "validate": validate.main,
+    "import": csv_import.main,
     "profile": profile.main,
     "archetypes": archetypes.main,
 }
@@ -281,6 +391,8 @@ _COMMANDS = {
     "home": cmd_home,
     "install": cmd_install,
     "reset": cmd_reset,
+    "recalc": cmd_recalc,
+    "switch-model": cmd_switch_model,
 }
 
 _USAGE = """\
@@ -289,9 +401,15 @@ ticketly — turn project requirements into clean, structured tickets.
 Usage:
   ticketly home                       print the engine's data path
   ticketly install claude|codex|all   wire Ticketly into your AI coding agent
-  ticketly reset PROJECT [--all]      safely remove a project's generated files
+  ticketly reset [-y]                 safely remove this folder's generated files
   ticketly render   BACKLOG [opts]    render a backlog to Markdown/CSV/Notion
   ticketly validate BACKLOG           integrity-check a backlog
+  ticketly recalc   BACKLOG [--reason R] [--approved-by NAME] [--dry-run]
+                                      recalculate points, record estimate/owner/status changes
+  ticketly switch-model BACKLOG --to hours --reason R [--dry-run]
+                                      move a Fibonacci backlog to hours-based points
+  ticketly import   CSV [--backlog B] [--dry-run]
+                                      import an edited CSV or Notion export
   ticketly profile  PROFILE           validate a project profile
   ticketly archetypes [LIBRARY]       validate the archetype library
 """
