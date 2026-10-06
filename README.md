@@ -44,9 +44,12 @@ describe your idea, you can use it.
   ticket for clarification instead of making something up. Nothing is invented.
 - **Matches a real PM's style** — short, clear titles; one-line descriptions; testable acceptance
   criteria; sensible effort sizing.
+- **Sizes work your way** — hours-based points (standard hours × a difficulty multiplier, calculated
+  and explained) or Fibonacci points, with owners, review-before-Done, and per-person totals.
 - **Full or MVP** — you choose whether to plan everything or just enough for a first version (it
   lists whatever it sets aside).
-- **Works out of the box** — exports to Markdown (to review), CSV (any tracker), and Notion.
+- **Works out of the box** — exports to Markdown (to review), CSV (any tracker), and Notion — and
+  imports your edited CSV or Notion export back.
 
 ## How it works
 
@@ -121,7 +124,8 @@ It writes everything into a single `ticketly/` folder in your current directory:
   (where to start, what you can do now vs. later, and how big each area is), then the full tickets
   and a suggested build order.
 - `ticketly/backlog.csv` — import into any tracker. Includes a blank **Assignee** column you fill
-  in later (in the tracker or Notion). Add Notion with `--format notion`.
+  in later (in the tracker or Notion), the estimate inputs, and Epic totals. Add Notion with
+  `--format notion`. Edited copies can come back in with `ticketly import`.
 - `ticketly/.data/` — the machine source-of-truth (`profile.json`, `backlog.json`), tucked away;
   you never need to open these.
 
@@ -130,6 +134,144 @@ You can re-export a backlog any time:
 ```bash
 ticketly render ticketly/.data/backlog.json --format all --out-dir ticketly/
 ```
+
+## Sizing work: hours-based or Fibonacci points
+
+When a backlog is created, Ticketly asks **once** how to size it, saves the choice in the backlog,
+and shows it at the top of every export. If you leave it to Ticketly, it suggests hours-based points.
+
+- **Hours-based points** — every task gets *standard hours* and a *difficulty level*, and Ticketly
+  calculates the points:
+
+  ```text
+  points = estimated hours × difficulty multiplier   (rounded half-up to one decimal)
+  ```
+
+  | Level | Technical requirements | Multiplier |
+  | --- | --- | --- |
+  | 1 Basic | Established pattern; local change; straightforward verification | 1.00 |
+  | 2 Standard | Routine logic, coordination across components, or a well-defined integration | 1.10 |
+  | 3 Complex | Complex state, permissions, data migration, compatibility, or recovery | 1.25 |
+  | 4 Advanced | Architecture tradeoffs, concurrency, demanding performance, or complex security | 1.40 |
+
+  | Task | Hours | Level | Points |
+  | --- | --- | --- | --- |
+  | Build three pages using an existing template | 12 | 1 | 12.0 |
+  | Implement a conventional API integration | 8 | 2 | 8.8 |
+  | Implement complex permission inheritance | 8 | 3 | 10.0 |
+  | Fix a concurrency consistency defect | 4 | 4 | 5.6 |
+
+  Standard hours are the active work for a developer who knows the stack and the project:
+  implementation + testing + self-review + handoff, in quarter-hour steps (for example 5 + 2 + 0.5 +
+  0.5 = 8). Difficulty comes from technical evidence and carries a short reason; a long task isn't
+  automatically a hard one. Confidence (high / medium / low) is recorded separately and never
+  changes points. Estimates describe the work, never the person doing it. One point is one standard
+  hour at level 1 — points are difficulty-weighted, **not** elapsed time.
+- **Fibonacci points** — quick relative sizes: 1, 2, 3, 5, 8, 13.
+
+A task that can't be estimated responsibly shows as **Unestimated** and is flagged for
+clarification; any total that includes it is marked **partial**. Epic totals are the sum of their
+tasks' points (no extra multiplier). The multipliers are a starting calibration: each backlog keeps
+the rubric it was estimated with, so a later calibration never quietly rescores existing work.
+
+After Ticketly (or you) edits the backlog, recalculate and record the change:
+
+```bash
+ticketly recalc ticketly/.data/backlog.json                             # new or first estimates
+ticketly recalc ticketly/.data/backlog.json --reason "Scope added CSV export"   # changed estimates
+```
+
+### Moving an existing backlog to hours-based points
+
+Existing Fibonacci backlogs keep working exactly as before. Switching is explicit and needs a reason:
+
+```bash
+ticketly switch-model ticketly/.data/backlog.json --to hours --reason "Team adopts hours-based points"
+```
+
+Old points can't be converted reliably, so every task keeps its Fibonacci points as a **legacy**
+estimate (with its owner and status) and starts Unestimated until it's re-estimated in hours. Legacy and
+hours-based totals are always shown separately — never added together.
+
+Tasks that were already **Done** at the switch stay on their legacy points: they're credited to the
+owner recorded at the switch (even if the task is reassigned later), they stay out of the hours-based
+totals and never make them partial, and they can't be re-estimated — `ticketly recalc` and
+`ticketly import` both refuse. If more work turns up on one, add it as a new task.
+
+## Owners, progress and totals
+
+- **Owners** — the `assignee` on each task. Ticketly never invents owners; you set them (in a
+  conversation, or in a CSV — see below).
+- **Status** — To Do → In Progress → In Review → **Done**. Done means the work was reviewed and meets
+  its acceptance criteria.
+- **Team totals** — `backlog.md` shows, per person, what they're **assigned** and what is **Done**,
+  with standard hours and points in separate columns.
+- **Explicit work** — substantial cleanup, integration, client preparation, or a bounded
+  investigation can be its own task, counted separately. Ordinary testing and self-review stay
+  inside a task's own estimate.
+- **History** — every change to an estimate, owner, status or estimation model is recorded on the
+  task with its date and reason; earlier estimates are never erased.
+- **Full takeovers** — if someone else takes over a task and none of the original owner's work is
+  being kept, just reassign it. The change of owner is recorded in the task's history.
+- **Partial work** — when someone takes over a task part-way, the finished part stays on the original
+  task and the rest becomes a new task with its own owner (a *replaced* split). The original's
+  estimate is reduced to the work it keeps; it must keep some, or it's a full takeover. Ticketly then
+  holds the whole chain to the original estimate: the original plus every task split from it —
+  including later splits and splits of splits — may never total more than the original was estimated
+  at before the first split. That stays true after later re-estimates, so the same work is never
+  counted twice. If the work genuinely grew, re-estimate with approval:
+  `ticketly recalc ticketly/.data/backlog.json --reason "..." --approved-by "<who approved it>"`.
+- **New scope** — genuinely new, approved work is recorded as an *additional* split (with who
+  approved it when the same person owns both). Fixing your own unfinished work doesn't earn extra
+  points.
+
+Ticketly tracks sizes and progress only — there are no rates, budgets, invoices or payments.
+
+## Editing in a spreadsheet or Notion
+
+You can change **owners, status, due dates, priority and estimate inputs** in an exported CSV and
+bring them back:
+
+```bash
+ticketly render ticketly/.data/backlog.json --format all --out-dir ticketly/
+# ...edit ticketly/backlog.csv in a spreadsheet...
+ticketly import ticketly/backlog.csv --dry-run     # preview — writes nothing
+ticketly import ticketly/backlog.csv               # apply
+ticketly render ticketly/.data/backlog.json --format all --out-dir ticketly/
+```
+
+- Rows are matched by ticket ID. Column order, extra columns and blank rows don't matter, but keep
+  the **baseline** column (`ticketly_baseline`) — it's how Ticketly tells your edits apart from
+  values that changed since the export. A CSV without it is refused with instructions.
+- A changed estimate needs a short reason in the row's `change_reason` column.
+- To change an estimate, edit the breakdown columns (`hours_implementation`, `hours_testing`,
+  `hours_self_review`, `hours_handoff`), the difficulty level and reason, or the confidence.
+  `estimated_hours` is computed from the breakdown, and points from the hours and level.
+- Hours must be finite numbers in quarter hours; difficulty is a whole number from 1 to 4 (`2.0`
+  reads as `2`). `NaN`, `Infinity`, fractional levels and other invalid values abort the import.
+- Points, estimated hours and totals in a CSV are exported values; Ticketly recalculates them on
+  import. Edits to them, or to protected fields such as titles, descriptions and dependencies, are
+  ignored with a warning — change those by asking Ticketly.
+- **Conflicts:** if you edited something that has also changed in Ticketly since you exported, the
+  import stops. Values you didn't touch are simply left as Ticketly has them.
+- Any error — an invalid value, an unknown or duplicate ID, a conflict — aborts the whole import and
+  nothing is written. A successful import replaces the backlog only after the complete result
+  validates; importing the same file again changes nothing.
+
+**Notion.** Export with `--format notion` and import `ticketly/backlog.notion.csv` into Notion. To
+bring Notion edits back, export the database from Notion as CSV and run `ticketly import` on it. Only
+the same fields come back as from any CSV — owners, status, due dates, priority and estimate inputs.
+Edits to protected fields (titles, descriptions, acceptance criteria, dependencies, …) and any
+properties you added in Notion are **not** imported. There is no live Notion sync, and Notion's CSV
+import only **adds** rows — it never updates existing ones. To refresh Notion after changes in
+Ticketly:
+
+1. Export the Notion database as CSV and `ticketly import` it, so its owner, status, date, priority
+   and estimate edits are brought in first.
+2. Re-render: `ticketly render ticketly/.data/backlog.json --format notion --out-dir ticketly/`.
+3. Import the new `backlog.notion.csv` into a **new** Notion database, and keep the original one
+   (rename or archive it) as your record of what was there. Never merge the new CSV onto the
+   existing database, or every ticket appears twice.
 
 ## Starting a project over
 
@@ -141,7 +283,8 @@ ticketly reset      # asks before deleting
 ```
 
 Reset is deliberately careful: it only ever removes Ticketly's own generated files in `ticketly/`
-(`tasks.md`, `backlog.md`, `backlog.csv`, and the `.data/` JSONs), confirms each one with you first,
+(`tasks.md`, `backlog.md`, `backlog.csv`, `backlog.notion.csv`, and the `.data/` JSONs — CSVs only
+when their header is one Ticketly writes), confirms each one with you first,
 never touches a file it can't verify as Ticketly's, and never reaches outside the current folder.
 Your code and other files are never touched.
 
@@ -162,7 +305,8 @@ Your code and other files are never touched.
 
 Install Ticketly, open the folder with your spec, and run `/ticketly` in Claude Code (or say "use
 Ticketly" in Codex). Describe or paste the spec, answer its questions, and it writes a full backlog
-to `ticketly/` — epics, tickets, acceptance criteria, effort, and dependencies.
+to `ticketly/` — epics, tickets, acceptance criteria, hours-based or Fibonacci points, and
+dependencies.
 
 ### How do I turn an existing codebase into a backlog?
 
@@ -173,7 +317,8 @@ Run `/ticketly` inside the repo. It reads the code, infers the stack, and plans 
 
 Yes. Ticketly exports `ticketly/backlog.csv`, which imports into any tracker that accepts CSV
 (Jira, Linear, Asana, Trello). For Notion, use `--format notion`. There's a blank **Assignee**
-column you fill in on the tracker side.
+column you fill in on the tracker side, and edited CSVs (including Notion exports) can be imported
+back with `ticketly import` — see [Editing in a spreadsheet or Notion](#editing-in-a-spreadsheet-or-notion).
 
 ### Does Ticketly need an API key or a paid plan?
 

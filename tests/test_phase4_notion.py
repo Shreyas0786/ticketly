@@ -76,11 +76,21 @@ def test_task_effort_is_the_number(rows):
 def test_header_columns_are_exactly_the_spec():
     headers = [h for h, _ in render.NOTION_COLUMNS]
     assert headers[0] == "Name"
-    assert set(headers) == {
+    # the original thirteen columns, first and in their original order ...
+    assert headers[:13] == [
         "Name", "ID", "Type", "Status", "Effort", "Epic", "Dependencies",
         "Needs Clarification", "Description", "Acceptance Criteria",
         "Assignee", "Due Date", "Priority",
-    }
+    ]
+    # ... then the estimation, tracking, total and baseline columns (1.3.0)
+    assert headers[13:] == [
+        "Estimation Model", "Estimated Hours", "Implementation Hours", "Testing Hours",
+        "Self-Review Hours", "Handoff Hours", "Difficulty Level", "Difficulty Reason",
+        "Confidence", "Rubric", "Work Kind", "Split From", "Split Scope", "Legacy Model",
+        "Legacy Points", "Points Total", "Hours Total", "Total Partial", "Change Reason",
+        "Ticketly Baseline",
+    ]
+    assert len(headers) == len(set(headers))
 
 
 # --- cli -----------------------------------------------------------------

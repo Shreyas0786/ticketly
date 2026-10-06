@@ -37,7 +37,28 @@ detailed flow lives in `SKILL.md`; read it and follow it.
   in `./ticketly/.data/` (`profile.json`, `backlog.json`).
 - **Validate and render through the engine, never by hand:** `ticketly profile`,
   `ticketly validate`, `ticketly render`.
+- **Ask the estimation model once per new backlog:** Hours-based points or Fibonacci points
+  (suggest Hours-based if the user leaves it to you), save it in the backlog's `estimation` block,
+  and never ask again for an existing backlog. For hours-based points propose only the inputs — a
+  quarter-hour breakdown (implementation, testing, self-review, handoff), a difficulty level 1–4
+  with a technical reason, and a confidence — and let `ticketly recalc` calculate the points and
+  record history. Estimate the work, never the person. A task that can't be estimated responsibly
+  stays Unestimated with `needs_clarification: true`. The rubric and rules are in
+  `ENGINE/house-style/default.json` (`hours_rubric`); a worked example is
+  `ENGINE/examples/hours-backlog.json`.
+- **Record every change through the engine:** `ticketly recalc` (with `--reason` when an estimate
+  changes), `ticketly switch-model ticketly/.data/backlog.json --to hours --reason ...` to change models, and `ticketly import`
+  for an edited CSV or Notion export. Never hand-edit `history`, `legacy_estimates` or calculated
+  points. Done means reviewed work that meets its acceptance criteria. A full takeover is a
+  reassignment; partial work becomes a separately owned `replaced` split, and the original plus all
+  its splits may never total more than the original estimate unless the growth is approved
+  (`ticketly recalc ticketly/.data/backlog.json --reason ... --approved-by NAME`). Tasks completed before a model switch keep
+  their legacy points and owner and are never re-estimated — new work goes in a new task.
+- **CSV / Notion round trip:** only owners, status, due dates, priority and estimate inputs come back
+  (`estimated_hours` is computed from the breakdown); protected fields and extra Notion properties are
+  not imported. Refresh Notion into a new database and keep the original.
 
 The full detail — Discuss (with the archetype-driven, free-first stack recommendations), Distill,
-choose scope, generate, check integrity, render, and refine — is in `SKILL.md`. Read it before you
+choose scope, choose the estimation model, generate, check integrity, render, refine, ownership and
+takeovers, and the CSV/Notion round trip — is in `SKILL.md`. Read it before you
 start writing tickets.
