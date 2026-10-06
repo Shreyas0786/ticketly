@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ticketly.dev/schema/ticket.schema.json",
   "title": "Ticketly Backlog",
-  "description": "A generated backlog: an optional company, a project, and its epics and tickets. Single source of truth for every Ticketly renderer and validator.",
+  "description": "A generated backlog: an optional company, a project, its estimation model, and its epics and tickets. Single source of truth for every Ticketly renderer and validator. A backlog with no `estimation` block is a legacy Fibonacci backlog and validates exactly as before; `estimation.model` selects the ticket shape: `fibonacci` (Fibonacci story points) or `hours` (hours-based points calculated from a standard-hour estimate and a difficulty level).",
   "type": "object",
   "required": ["project", "tickets"],
   "additionalProperties": false,
@@ -17,21 +17,238 @@
       "minLength": 1,
       "description": "Project name this backlog belongs to, supplied by the user, e.g. 'Demo Project'."
     },
+    "estimation": { "$ref": "#/$defs/estimation" },
     "tickets": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/ticket" }
+      "description": "Epics and Tasks. Their shape depends on the estimation model (see allOf)."
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": ["estimation"],
+        "properties": { "estimation": { "required": ["model"], "properties": { "model": { "const": "hours" } } } }
+      },
+      "then": { "properties": { "tickets": { "items": { "$ref": "#/$defs/hours_ticket" } } } }
+    },
+    {
+      "if": {
+        "required": ["estimation"],
+        "properties": { "estimation": { "required": ["model"], "properties": { "model": { "const": "fibonacci" } } } }
+      },
+      "then": { "properties": { "tickets": { "items": { "$ref": "#/$defs/fibonacci_ticket" } } } }
+    },
+    {
+      "if": { "required": ["estimation"] },
+      "else": { "properties": { "tickets": { "items": { "$ref": "#/$defs/ticket" } } } }
+    }
+  ],
   "$defs": {
     "id": {
       "type": "string",
       "pattern": "^(EPIC-[A-Z]{2,5}|(?!EPIC-)[A-Z]{2,5}-[0-9]{3})$",
       "description": "Epics: EPIC-<PREFIX> (e.g. EPIC-ARC). Tasks: <PREFIX>-NNN (e.g. ARC-001). Prefix is the epic theme; children inherit it."
     },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "ISO date, YYYY-MM-DD."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["To Do", "In Progress", "In Review", "Done"],
+      "default": "To Do",
+      "description": "To Do, In Progress, In Review (waiting for review), Done. Done means the work was reviewed and meets its acceptance criteria."
+    },
+    "estimation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model"],
+      "description": "Which estimation model this backlog uses, chosen once when the backlog is created. Changing it is an explicit, recorded action (`ticketly switch-model`).",
+      "properties": {
+        "model": {
+          "type": "string",
+          "enum": ["hours", "fibonacci"],
+          "description": "hours = hours-based points; fibonacci = Fibonacci story points."
+        },
+        "rubric_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Hours model: the difficulty rubric new estimates are made under (e.g. 'hours-v1')."
+        },
+        "rubrics": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/rubric" },
+          "description": "Hours model: every difficulty rubric used by an estimate in this backlog, frozen by version, so a later calibration never rescores existing estimates."
+        },
+        "history": {
+          "type": "array",
+          "description": "Every model change: when, from, to, and why.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["on", "from", "to", "reason"],
+            "properties": {
+              "on": { "$ref": "#/$defs/date" },
+              "from": { "type": "string", "enum": ["hours", "fibonacci"] },
+              "to": { "type": "string", "enum": ["hours", "fibonacci"] },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      },
+      "if": { "properties": { "model": { "const": "hours" } } },
+      "then": { "required": ["model", "rubric_version", "rubrics"] }
+    },
+    "rubric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["1", "2", "3", "4"],
+      "description": "Difficulty multipliers by level, as exact decimal strings (e.g. '1.10').",
+      "properties": {
+        "1": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" },
+        "2": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" },
+        "3": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" },
+        "4": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" }
+      }
+    },
+    "quarter_hours": {
+      "type": "number",
+      "minimum": 0,
+      "multipleOf": 0.25,
+      "description": "Hours in quarter-hour increments (0.25, 0.5, 0.75, ...)."
+    },
+    "estimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "estimated_hours",
+        "hours_breakdown",
+        "difficulty_level",
+        "difficulty_reason",
+        "estimate_confidence",
+        "rubric_version"
+      ],
+      "description": "Hours model: the inputs effort is calculated from. Points = estimated_hours x the difficulty multiplier, rounded half-up to one decimal. Estimates describe the work, never the person doing it.",
+      "properties": {
+        "estimated_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "multipleOf": 0.25,
+          "description": "Standard hours: active work for a developer competent in the stack and familiar with the project to meet the acceptance criteria — implementation, testing, self-review and handoff. Excludes waiting and person-specific onboarding. Must equal the breakdown total; in a CSV it is computed from the breakdown columns. Numbers must be finite."
+        },
+        "hours_breakdown": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["implementation", "testing", "self_review", "handoff"],
+          "properties": {
+            "implementation": { "$ref": "#/$defs/quarter_hours" },
+            "testing": { "$ref": "#/$defs/quarter_hours" },
+            "self_review": { "$ref": "#/$defs/quarter_hours" },
+            "handoff": { "$ref": "#/$defs/quarter_hours" }
+          }
+        },
+        "difficulty_level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "description": "1 Basic (x1.00), 2 Standard (x1.10), 3 Complex (x1.25), 4 Advanced (x1.40), chosen from technical evidence — never because a task is long. A whole number; 2.0 reads as 2."
+        },
+        "difficulty_reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short, task-specific evidence for the chosen level."
+        },
+        "estimate_confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "high = scope and approach established; medium = bounded assumptions remain; low = material questions unresolved. Does not change points."
+        },
+        "rubric_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The rubric this estimate was made under; its multipliers are frozen in estimation.rubrics."
+        }
+      }
+    },
+    "work_kind": {
+      "type": "string",
+      "enum": ["cleanup", "integration", "client_prep", "investigation"],
+      "description": "Optional. Marks substantial cleanup, integration, client preparation, or a bounded investigation as its own explicit task. Leave it out for ordinary build work; routine testing and self-review stay inside the original task's estimate."
+    },
+    "split_from": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticket", "scope", "reason"],
+      "description": "Optional. This Task was split out of another Task (partial completion handed to someone else). scope 'replaced' = it takes over scope the original was estimated for: the original's estimate must be reduced to the work it keeps (it must keep some — a full takeover is a reassignment, not a split), and the whole chain of replaced splits may never total more than the root was estimated at before the first split, plus growth recorded with approved_by. scope 'additional' = genuinely new, approved scope.",
+      "properties": {
+        "ticket": { "$ref": "#/$defs/id" },
+        "scope": { "type": "string", "enum": ["replaced", "additional"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "approved_by": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Who approved additional scope. Expected when the new task has the same owner as the original."
+        }
+      }
+    },
+    "legacy_estimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "effort", "status", "completed", "on", "reason"],
+      "description": "The estimate a Task had before its backlog switched models, with its owner and status at the time. Legacy points are reported separately and never added to the new model's totals. A Task that was completed at the switch keeps its legacy points, credited to the owner recorded here, and can't be re-estimated; new work on it belongs in a new Task.",
+      "properties": {
+        "model": { "type": "string", "enum": ["hours", "fibonacci"] },
+        "effort": { "type": ["number", "null"] },
+        "assignee": { "type": ["string", "null"] },
+        "status": { "$ref": "#/$defs/status" },
+        "completed": { "type": "boolean" },
+        "on": { "$ref": "#/$defs/date" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "history_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["on", "field", "from", "to", "reason", "source"],
+      "description": "One recorded change. 'baseline' records the starting estimate, owner and status; later events record estimate, assignee, status and model changes. Earlier snapshots are never erased.",
+      "properties": {
+        "on": { "$ref": "#/$defs/date" },
+        "field": { "type": "string", "enum": ["baseline", "estimate", "assignee", "status", "model"] },
+        "from": {},
+        "to": {},
+        "reason": { "type": ["string", "null"] },
+        "source": { "type": "string", "enum": ["recalc", "import", "switch-model"] },
+        "assignee": { "type": ["string", "null"] },
+        "status": { "$ref": "#/$defs/status" },
+        "split_to": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "uniqueItems": true,
+          "description": "Tasks that took over part of this Task's scope when this estimate was reduced."
+        },
+        "approved_by": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Who approved this estimate increase (`ticketly recalc --approved-by`). Only approved growth lets a split family total more than its root was estimated at before the split."
+        }
+      }
+    },
+    "history": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/history_event" },
+      "description": "Recorded by `ticketly recalc`, `ticketly import` and `ticketly switch-model`."
+    },
+    "legacy_estimates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/legacy_estimate" }
+    },
     "ticket": {
       "type": "object",
       "additionalProperties": false,
+      "description": "A ticket in a legacy backlog (no estimation block): Fibonacci effort, exactly as before.",
       "required": [
         "id",
         "title",
@@ -63,11 +280,7 @@
             { "type": "null" }
           ]
         },
-        "status": {
-          "type": "string",
-          "enum": ["To Do", "In Progress", "Done"],
-          "default": "To Do"
-        },
+        "status": { "$ref": "#/$defs/status" },
         "effort": {
           "type": "integer",
           "enum": [0, 1, 2, 3, 5, 8, 13],
@@ -115,6 +328,89 @@
           ],
           "default": null
         }
+      }
+    },
+    "fibonacci_ticket": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A ticket in a backlog whose estimation model is 'fibonacci': the legacy ticket plus ownership/progress tracking fields.",
+      "required": [
+        "id",
+        "title",
+        "type",
+        "parent",
+        "status",
+        "effort",
+        "dependencies",
+        "description",
+        "acceptance_criteria",
+        "needs_clarification"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/ticket/properties/id" },
+        "title": { "$ref": "#/$defs/ticket/properties/title" },
+        "type": { "$ref": "#/$defs/ticket/properties/type" },
+        "parent": { "$ref": "#/$defs/ticket/properties/parent" },
+        "status": { "$ref": "#/$defs/status" },
+        "effort": { "$ref": "#/$defs/ticket/properties/effort" },
+        "dependencies": { "$ref": "#/$defs/ticket/properties/dependencies" },
+        "description": { "$ref": "#/$defs/ticket/properties/description" },
+        "acceptance_criteria": { "$ref": "#/$defs/ticket/properties/acceptance_criteria" },
+        "needs_clarification": { "$ref": "#/$defs/ticket/properties/needs_clarification" },
+        "assignee": { "$ref": "#/$defs/ticket/properties/assignee" },
+        "due_date": { "$ref": "#/$defs/ticket/properties/due_date" },
+        "priority": { "$ref": "#/$defs/ticket/properties/priority" },
+        "work_kind": { "$ref": "#/$defs/work_kind" },
+        "split_from": { "$ref": "#/$defs/split_from" },
+        "history": { "$ref": "#/$defs/history" },
+        "legacy_estimates": { "$ref": "#/$defs/legacy_estimates" }
+      }
+    },
+    "hours_ticket": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A ticket in a backlog whose estimation model is 'hours'. effort is the calculated points (one decimal), null when the Task is Unestimated; Epics keep effort 0 and are totalled from their children.",
+      "required": [
+        "id",
+        "title",
+        "type",
+        "parent",
+        "status",
+        "effort",
+        "dependencies",
+        "description",
+        "acceptance_criteria",
+        "needs_clarification"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/ticket/properties/id" },
+        "title": { "$ref": "#/$defs/ticket/properties/title" },
+        "type": { "$ref": "#/$defs/ticket/properties/type" },
+        "parent": { "$ref": "#/$defs/ticket/properties/parent" },
+        "status": { "$ref": "#/$defs/status" },
+        "effort": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Calculated points (hours x difficulty multiplier, rounded half-up to one decimal). Never typed by hand: `ticketly recalc` and `ticketly import` set it. null = Unestimated. Epics: 0."
+        },
+        "estimate": {
+          "oneOf": [
+            { "$ref": "#/$defs/estimate" },
+            { "type": "null" }
+          ],
+          "description": "The estimate inputs; null when the Task is Unestimated."
+        },
+        "dependencies": { "$ref": "#/$defs/ticket/properties/dependencies" },
+        "description": { "$ref": "#/$defs/ticket/properties/description" },
+        "acceptance_criteria": { "$ref": "#/$defs/ticket/properties/acceptance_criteria" },
+        "needs_clarification": { "$ref": "#/$defs/ticket/properties/needs_clarification" },
+        "assignee": { "$ref": "#/$defs/ticket/properties/assignee" },
+        "due_date": { "$ref": "#/$defs/ticket/properties/due_date" },
+        "priority": { "$ref": "#/$defs/ticket/properties/priority" },
+        "work_kind": { "$ref": "#/$defs/work_kind" },
+        "split_from": { "$ref": "#/$defs/split_from" },
+        "history": { "$ref": "#/$defs/history" },
+        "legacy_estimates": { "$ref": "#/$defs/legacy_estimates" }
       }
     }
   }

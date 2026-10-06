@@ -26,6 +26,31 @@
     "description": "One crisp sentence stating intent — what and why. No filler, no restating the title.",
     "acceptance_criteria": "1-4 concrete, testable, closeable conditions. Each independently checkable; phrase as the done-state, not a task. E.g. 'enforces max size with a clear error'."
   },
+  "hours_rubric": {
+    "version": "hours-v1",
+    "levels": {
+      "1": { "name": "Basic", "multiplier": "1.00", "requirements": "Established implementation pattern; local change; straightforward verification." },
+      "2": { "name": "Standard", "multiplier": "1.10", "requirements": "Routine business logic, coordination across components, or a well-defined integration." },
+      "3": { "name": "Complex", "multiplier": "1.25", "requirements": "Complex state transitions, permissions, data migration, compatibility, or recovery behavior." },
+      "4": { "name": "Advanced", "multiplier": "1.40", "requirements": "Architecture tradeoffs, concurrency correctness, demanding performance, or complex security requirements." }
+    },
+    "guidance": [
+      "Standard hours = the active work a developer competent in the stack and familiar with the project needs to meet the acceptance criteria: implementation, testing, self-review and handoff. Exclude waiting for dependencies or review, and person-specific onboarding.",
+      "Support every estimate with the breakdown (implementation + testing + self-review + handoff), in quarter-hour increments. Quarter hours standardise inputs; they are not a promise of that accuracy.",
+      "Pick the best-matching difficulty level from technical evidence and give a short task-specific reason. File count, code volume and repetitive work affect hours, not difficulty; never raise difficulty just because a task is long, and never pad the hours as a second complexity buffer.",
+      "A routine task involving authentication does not automatically qualify for level 4.",
+      "Record confidence separately: high when scope and approach are established, medium when bounded assumptions remain, low when material questions are unresolved. Confidence never changes points.",
+      "If a task can't be estimated responsibly, leave it Unestimated and flag needs_clarification; substantial unknowns may need a bounded investigation task first.",
+      "Estimate the work, not the person: assignment, individual speed, seniority and team size are never inputs. The same task gets the same points whoever takes it.",
+      "Ordinary testing and self-review stay inside a task's estimate. Substantial cleanup, integration or client preparation can be its own task (work_kind). Fixing your own incomplete work does not create additional points.",
+      "When scope changes, re-estimate with a reason; earlier estimates are kept in the task's history.",
+      "A full takeover is a reassignment. Partial work handed over becomes a separately owned 'replaced' split: the original keeps only what its owner did, and the original plus all its splits never total more than the original estimate unless the growth was approved.",
+      "Work completed before a switch to hours-based points stays on its legacy points with the owner recorded at the switch; it is never re-estimated, and new work goes in a new task."
+    ]
+  },
+  "hours_few_shot": {
+    "backlog": "examples/hours-backlog.json"
+  },
   "few_shot": {
     "backlog": "examples/house-style-backlog.json"
   }

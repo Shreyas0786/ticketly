@@ -1,0 +1,624 @@
+{
+  "company": "Demo Company",
+  "project": "Demo Project",
+  "estimation": {
+    "model": "hours",
+    "rubric_version": "hours-v1",
+    "rubrics": {
+      "hours-v1": {
+        "1": "1.00",
+        "2": "1.10",
+        "3": "1.25",
+        "4": "1.40"
+      }
+    }
+  },
+  "tickets": [
+    {
+      "id": "EPIC-WEB",
+      "title": "Customer web app",
+      "type": "Epic",
+      "parent": null,
+      "status": "To Do",
+      "effort": 0,
+      "dependencies": [],
+      "description": "The pages and permissions customers use day to day.",
+      "acceptance_criteria": [],
+      "needs_clarification": false
+    },
+    {
+      "id": "WEB-001",
+      "title": "Build three pages from the existing template",
+      "type": "Task",
+      "parent": "EPIC-WEB",
+      "status": "Done",
+      "effort": 12.0,
+      "estimate": {
+        "estimated_hours": 12.0,
+        "hours_breakdown": {
+          "implementation": 8,
+          "testing": 2.5,
+          "self_review": 1,
+          "handoff": 0.5
+        },
+        "difficulty_level": 1,
+        "difficulty_reason": "Reuses the established page template; local change verified by rendering each page.",
+        "estimate_confidence": "high",
+        "rubric_version": "hours-v1"
+      },
+      "dependencies": [],
+      "description": "Add the help, contact and status pages using the existing page template.",
+      "acceptance_criteria": [
+        "each page renders from the shared template",
+        "each page is reachable from the footer"
+      ],
+      "needs_clarification": false,
+      "assignee": "Person A",
+      "history": [
+        {
+          "on": "2026-10-01",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": 12.0,
+              "estimate": {
+                "estimated_hours": 12.0,
+                "hours_breakdown": {
+                  "implementation": 8,
+                  "testing": 2.5,
+                  "self_review": 1,
+                  "handoff": 0.5
+                },
+                "difficulty_level": 1,
+                "difficulty_reason": "Reuses the established page template; local change verified by rendering each page.",
+                "estimate_confidence": "high",
+                "rubric_version": "hours-v1"
+              }
+            },
+            "assignee": "Person A",
+            "status": "Done"
+          },
+          "reason": "initial estimate",
+          "source": "recalc"
+        }
+      ]
+    },
+    {
+      "id": "WEB-002",
+      "title": "Implement permission inheritance",
+      "type": "Task",
+      "parent": "EPIC-WEB",
+      "status": "In Progress",
+      "effort": 5.0,
+      "estimate": {
+        "estimated_hours": 4.0,
+        "hours_breakdown": {
+          "implementation": 2.5,
+          "testing": 1,
+          "self_review": 0.25,
+          "handoff": 0.25
+        },
+        "difficulty_level": 3,
+        "difficulty_reason": "Complex permission state across nested roles.",
+        "estimate_confidence": "high",
+        "rubric_version": "hours-v1"
+      },
+      "dependencies": [
+        "WEB-001"
+      ],
+      "description": "Let team roles inherit permissions from their parent role so access stays consistent.",
+      "acceptance_criteria": [
+        "a child role gains every permission its parent grants",
+        "revoking a parent permission removes it from every child role"
+      ],
+      "needs_clarification": false,
+      "assignee": "Person A",
+      "history": [
+        {
+          "on": "2026-10-01",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": 10.0,
+              "estimate": {
+                "estimated_hours": 8.0,
+                "hours_breakdown": {
+                  "implementation": 5,
+                  "testing": 2,
+                  "self_review": 0.5,
+                  "handoff": 0.5
+                },
+                "difficulty_level": 3,
+                "difficulty_reason": "Complex permission state across nested roles.",
+                "estimate_confidence": "high",
+                "rubric_version": "hours-v1"
+              }
+            },
+            "assignee": "Person A",
+            "status": "In Progress"
+          },
+          "reason": "initial estimate",
+          "source": "recalc"
+        },
+        {
+          "on": "2026-10-05",
+          "field": "estimate",
+          "from": {
+            "model": "hours",
+            "effort": 10.0,
+            "estimate": {
+              "estimated_hours": 8.0,
+              "hours_breakdown": {
+                "implementation": 5,
+                "testing": 2,
+                "self_review": 0.5,
+                "handoff": 0.5
+              },
+              "difficulty_level": 3,
+              "difficulty_reason": "Complex permission state across nested roles.",
+              "estimate_confidence": "high",
+              "rubric_version": "hours-v1"
+            }
+          },
+          "to": {
+            "model": "hours",
+            "effort": 5.0,
+            "estimate": {
+              "estimated_hours": 4.0,
+              "hours_breakdown": {
+                "implementation": 2.5,
+                "testing": 1,
+                "self_review": 0.25,
+                "handoff": 0.25
+              },
+              "difficulty_level": 3,
+              "difficulty_reason": "Complex permission state across nested roles.",
+              "estimate_confidence": "high",
+              "rubric_version": "hours-v1"
+            }
+          },
+          "reason": "Handover: WEB-002 keeps the inheritance engine; the editor screen moves to WEB-004.",
+          "source": "recalc",
+          "assignee": "Person A",
+          "status": "In Progress",
+          "split_to": [
+            "WEB-004"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WEB-004",
+      "title": "Finish the permission editor screen",
+      "type": "Task",
+      "parent": "EPIC-WEB",
+      "status": "To Do",
+      "effort": 5.0,
+      "estimate": {
+        "estimated_hours": 4.0,
+        "hours_breakdown": {
+          "implementation": 2.5,
+          "testing": 1,
+          "self_review": 0.25,
+          "handoff": 0.25
+        },
+        "difficulty_level": 3,
+        "difficulty_reason": "Complex permission state across nested roles.",
+        "estimate_confidence": "high",
+        "rubric_version": "hours-v1"
+      },
+      "dependencies": [
+        "WEB-002"
+      ],
+      "description": "Complete the role editor screen that WEB-002 started, on top of its inheritance engine.",
+      "acceptance_criteria": [
+        "an admin can set a role's parent from the editor",
+        "the editor shows inherited permissions as read-only"
+      ],
+      "needs_clarification": false,
+      "assignee": "Person B",
+      "split_from": {
+        "ticket": "WEB-002",
+        "scope": "replaced",
+        "reason": "Person A moved to the integration work; Person B takes over the editor screen."
+      },
+      "history": [
+        {
+          "on": "2026-10-05",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": 5.0,
+              "estimate": {
+                "estimated_hours": 4.0,
+                "hours_breakdown": {
+                  "implementation": 2.5,
+                  "testing": 1,
+                  "self_review": 0.25,
+                  "handoff": 0.25
+                },
+                "difficulty_level": 3,
+                "difficulty_reason": "Complex permission state across nested roles.",
+                "estimate_confidence": "high",
+                "rubric_version": "hours-v1"
+              }
+            },
+            "assignee": "Person B",
+            "status": "To Do"
+          },
+          "reason": "split from WEB-002 (replaced): Person A moved to the integration work; Person B takes over the editor screen.",
+          "source": "recalc"
+        }
+      ]
+    },
+    {
+      "id": "WEB-003",
+      "title": "Fix concurrent edit consistency defect",
+      "type": "Task",
+      "parent": "EPIC-WEB",
+      "status": "To Do",
+      "effort": 5.6,
+      "estimate": {
+        "estimated_hours": 4.0,
+        "hours_breakdown": {
+          "implementation": 2.5,
+          "testing": 1,
+          "self_review": 0.25,
+          "handoff": 0.25
+        },
+        "difficulty_level": 4,
+        "difficulty_reason": "Concurrency correctness under simultaneous writes.",
+        "estimate_confidence": "medium",
+        "rubric_version": "hours-v1"
+      },
+      "dependencies": [],
+      "description": "Stop two simultaneous edits from silently overwriting each other.",
+      "acceptance_criteria": [
+        "a conflicting second save is rejected with a clear message",
+        "no edit is lost under two concurrent saves in the regression test"
+      ],
+      "needs_clarification": false,
+      "assignee": "Person B",
+      "history": [
+        {
+          "on": "2026-10-01",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": 5.6,
+              "estimate": {
+                "estimated_hours": 4.0,
+                "hours_breakdown": {
+                  "implementation": 2.5,
+                  "testing": 1,
+                  "self_review": 0.25,
+                  "handoff": 0.25
+                },
+                "difficulty_level": 4,
+                "difficulty_reason": "Concurrency correctness under simultaneous writes.",
+                "estimate_confidence": "medium",
+                "rubric_version": "hours-v1"
+              }
+            },
+            "assignee": "Person B",
+            "status": "To Do"
+          },
+          "reason": "initial estimate",
+          "source": "recalc"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-INT",
+      "title": "Integrations",
+      "type": "Epic",
+      "parent": null,
+      "status": "To Do",
+      "effort": 0,
+      "dependencies": [],
+      "description": "Connections to outside services.",
+      "acceptance_criteria": [],
+      "needs_clarification": false
+    },
+    {
+      "id": "INT-001",
+      "title": "Implement address lookup API integration",
+      "type": "Task",
+      "parent": "EPIC-INT",
+      "status": "In Review",
+      "effort": 8.8,
+      "estimate": {
+        "estimated_hours": 8.0,
+        "hours_breakdown": {
+          "implementation": 5,
+          "testing": 2,
+          "self_review": 0.5,
+          "handoff": 0.5
+        },
+        "difficulty_level": 2,
+        "difficulty_reason": "A conventional, well-documented REST integration.",
+        "estimate_confidence": "high",
+        "rubric_version": "hours-v1"
+      },
+      "dependencies": [],
+      "description": "Fill in addresses from the lookup service as customers type.",
+      "acceptance_criteria": [
+        "typing a postcode lists matching addresses",
+        "a lookup outage falls back to manual entry"
+      ],
+      "needs_clarification": false,
+      "assignee": "Person B",
+      "history": [
+        {
+          "on": "2026-10-01",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": 8.8,
+              "estimate": {
+                "estimated_hours": 8.0,
+                "hours_breakdown": {
+                  "implementation": 5,
+                  "testing": 2,
+                  "self_review": 0.5,
+                  "handoff": 0.5
+                },
+                "difficulty_level": 2,
+                "difficulty_reason": "A conventional, well-documented REST integration.",
+                "estimate_confidence": "high",
+                "rubric_version": "hours-v1"
+              }
+            },
+            "assignee": "Person B",
+            "status": "In Review"
+          },
+          "reason": "initial estimate",
+          "source": "recalc"
+        }
+      ]
+    },
+    {
+      "id": "INT-002",
+      "title": "Run end-to-end checks against the partner sandbox",
+      "type": "Task",
+      "parent": "EPIC-INT",
+      "status": "To Do",
+      "effort": 5.5,
+      "estimate": {
+        "estimated_hours": 5.0,
+        "hours_breakdown": {
+          "implementation": 3,
+          "testing": 1,
+          "self_review": 0.5,
+          "handoff": 0.5
+        },
+        "difficulty_level": 2,
+        "difficulty_reason": "Coordination across our app and the partner sandbox.",
+        "estimate_confidence": "high",
+        "rubric_version": "hours-v1"
+      },
+      "dependencies": [
+        "INT-001"
+      ],
+      "description": "Prove the integrated flow works against the partner's sandbox before launch.",
+      "acceptance_criteria": [
+        "the end-to-end suite passes against the sandbox",
+        "failures name the failing partner call"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "work_kind": "integration",
+      "history": [
+        {
+          "on": "2026-10-01",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": 5.5,
+              "estimate": {
+                "estimated_hours": 5.0,
+                "hours_breakdown": {
+                  "implementation": 3,
+                  "testing": 1,
+                  "self_review": 0.5,
+                  "handoff": 0.5
+                },
+                "difficulty_level": 2,
+                "difficulty_reason": "Coordination across our app and the partner sandbox.",
+                "estimate_confidence": "high",
+                "rubric_version": "hours-v1"
+              }
+            },
+            "assignee": null,
+            "status": "To Do"
+          },
+          "reason": "initial estimate",
+          "source": "recalc"
+        }
+      ]
+    },
+    {
+      "id": "EPIC-REL",
+      "title": "Release",
+      "type": "Epic",
+      "parent": null,
+      "status": "To Do",
+      "effort": 0,
+      "dependencies": [],
+      "description": "Getting the release in front of the client.",
+      "acceptance_criteria": [],
+      "needs_clarification": false
+    },
+    {
+      "id": "REL-001",
+      "title": "Prepare the client demo walkthrough",
+      "type": "Task",
+      "parent": "EPIC-REL",
+      "status": "To Do",
+      "effort": 3.0,
+      "estimate": {
+        "estimated_hours": 3.0,
+        "hours_breakdown": {
+          "implementation": 2,
+          "testing": 0.5,
+          "self_review": 0.25,
+          "handoff": 0.25
+        },
+        "difficulty_level": 1,
+        "difficulty_reason": "Scripted walkthrough of finished features.",
+        "estimate_confidence": "high",
+        "rubric_version": "hours-v1"
+      },
+      "dependencies": [
+        "WEB-001"
+      ],
+      "description": "Prepare the walkthrough and demo data the client reviews before sign-off.",
+      "acceptance_criteria": [
+        "the demo script covers every page in WEB-001",
+        "demo data loads with one command"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "work_kind": "client_prep",
+      "history": [
+        {
+          "on": "2026-10-01",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": 3.0,
+              "estimate": {
+                "estimated_hours": 3.0,
+                "hours_breakdown": {
+                  "implementation": 2,
+                  "testing": 0.5,
+                  "self_review": 0.25,
+                  "handoff": 0.25
+                },
+                "difficulty_level": 1,
+                "difficulty_reason": "Scripted walkthrough of finished features.",
+                "estimate_confidence": "high",
+                "rubric_version": "hours-v1"
+              }
+            },
+            "assignee": null,
+            "status": "To Do"
+          },
+          "reason": "initial estimate",
+          "source": "recalc"
+        }
+      ]
+    },
+    {
+      "id": "REL-002",
+      "title": "Investigate production hosting options",
+      "type": "Task",
+      "parent": "EPIC-REL",
+      "status": "To Do",
+      "effort": 2.5,
+      "estimate": {
+        "estimated_hours": 2.5,
+        "hours_breakdown": {
+          "implementation": 2,
+          "testing": 0,
+          "self_review": 0.25,
+          "handoff": 0.25
+        },
+        "difficulty_level": 1,
+        "difficulty_reason": "Timeboxed research with a written outcome.",
+        "estimate_confidence": "medium",
+        "rubric_version": "hours-v1"
+      },
+      "dependencies": [],
+      "description": "Compare two hosting options so the hosting migration can be sized.",
+      "acceptance_criteria": [
+        "a written comparison of two options covers cost tier, limits and migration steps",
+        "one option is recommended"
+      ],
+      "needs_clarification": false,
+      "assignee": null,
+      "work_kind": "investigation",
+      "history": [
+        {
+          "on": "2026-10-01",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": 2.5,
+              "estimate": {
+                "estimated_hours": 2.5,
+                "hours_breakdown": {
+                  "implementation": 2,
+                  "testing": 0,
+                  "self_review": 0.25,
+                  "handoff": 0.25
+                },
+                "difficulty_level": 1,
+                "difficulty_reason": "Timeboxed research with a written outcome.",
+                "estimate_confidence": "medium",
+                "rubric_version": "hours-v1"
+              }
+            },
+            "assignee": null,
+            "status": "To Do"
+          },
+          "reason": "initial estimate",
+          "source": "recalc"
+        }
+      ]
+    },
+    {
+      "id": "REL-003",
+      "title": "Migrate production hosting",
+      "type": "Task",
+      "parent": "EPIC-REL",
+      "status": "To Do",
+      "effort": null,
+      "estimate": null,
+      "dependencies": [
+        "REL-002"
+      ],
+      "description": "Move production to the hosting option chosen in REL-002.",
+      "acceptance_criteria": [
+        "production serves from the new host",
+        "the old host is decommissioned"
+      ],
+      "needs_clarification": true,
+      "assignee": null,
+      "history": [
+        {
+          "on": "2026-10-01",
+          "field": "baseline",
+          "from": null,
+          "to": {
+            "estimate": {
+              "model": "hours",
+              "effort": null,
+              "estimate": null
+            },
+            "assignee": null,
+            "status": "To Do"
+          },
+          "reason": "initial estimate",
+          "source": "recalc"
+        }
+      ]
+    }
+  ]
+}

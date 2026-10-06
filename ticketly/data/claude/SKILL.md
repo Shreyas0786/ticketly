@@ -1,6 +1,6 @@
 ---
 name: ticketly
-description: Turn project requirements into clean, structured, PM-quality tickets — discuss a project's tech stack and architecture, capture it as a reusable profile, then generate epics broken into child tickets with dependencies, Fibonacci effort, and acceptance criteria, rendered to Markdown and CSV. Use when the user wants to plan a backlog, break a project into tickets, or talk through architecture before writing tickets.
+description: Turn project requirements into clean, structured, PM-quality tickets — discuss a project's tech stack and architecture, capture it as a reusable profile, then generate epics broken into child tickets with dependencies, hours-based or Fibonacci points, and acceptance criteria, rendered to Markdown and CSV (and back in from an edited CSV or Notion export). Use when the user wants to plan a backlog, break a project into tickets, or talk through architecture before writing tickets.
 ---
 
 # Ticketly
@@ -55,7 +55,8 @@ on jargon they didn't introduce.
   selectors" and mention the tag (`WEB`) only as a small aside. Never head a question with
   "prefix scheme" or "epic" cold.
 - **Explain any concept in one plain sentence the first time it appears.** An epic is "a big area
-  of the project that related tasks live under." Effort points are "rough sizes — small to large."
+  of the project that related tasks live under." Fibonacci effort points are "rough sizes — small to
+  large." Hours-based points are "standard hours, weighted up for harder technical work."
 - **Always offer an obvious low-effort path.** If they're unsure, let them say "looks good, you
   decide" — and reassure that nothing is locked and anything can be renamed or changed later.
 - **Never make them confront a word they didn't say.** Translate, don't lecture.
@@ -73,6 +74,10 @@ folder has its own `./house-style/<project>.json`, prefer that override). It tel
 - **`tone`** — how titles, descriptions, and acceptance criteria should read. Follow it exactly.
 - **`few_shot.backlog`** — read `ENGINE/examples/house-style-backlog.json` before writing tickets
   and match its phrasing and shape. It is a style reference, not content to copy.
+- **`hours_rubric`** — for hours-based points: the four difficulty levels (name, multiplier,
+  technical requirements) and the estimating rules. **`hours_few_shot.backlog`** points at
+  `ENGINE/examples/hours-backlog.json`, a worked hours-based backlog (estimates, owners, a takeover
+  split, explicit integration / client-preparation / investigation tasks, an Unestimated task).
 
 ## The flow
 
@@ -230,23 +235,76 @@ don't assume:
   list everything you set aside ("Deferred for later: accounts, 2nd software, image input, …") so
   the user sees the full picture and can pull anything back in with a plain-English edit.
 
+### 4b. Choose how to estimate — once per backlog
+
+Ask this **once**, when the backlog is first created, and never again for that backlog:
+
+> **How should tasks be sized?**
+> 1. **Hours-based points** — each task gets standard hours (implementation + testing + self-review +
+>    handoff) and a difficulty level; Ticketly calculates the points. Good when estimates feed plans
+>    or quotes.
+> 2. **Fibonacci points** — quick relative sizes (1, 2, 3, 5, 8, 13).
+
+If they say "you decide" or aren't sure, suggest **Hours-based points**. Save the choice in the
+backlog's `estimation` block — `{"model": "hours", "rubric_version": "hours-v1", "rubrics":
+{"hours-v1": {"1": "1.00", "2": "1.10", "3": "1.25", "4": "1.40"}}}` or `{"model": "fibonacci"}` —
+and tell the user which model the backlog uses. Every rendered file states it too.
+
+**An existing backlog keeps its model.** If `./ticketly/.data/backlog.json` already exists, don't ask:
+read `estimation.model` (no `estimation` block = a legacy Fibonacci backlog, and its points keep their
+meaning). Switching models is a separate, explicit step — see *Changing the estimation model*.
+
 ### 5. Generate the backlog
 
-Using the confirmed profile, the requirements, and the chosen scope:
+Using the confirmed profile, the requirements, the chosen scope, and the chosen estimation model:
 
 1. **Epics first.** One `EPIC-<PREFIX>` per area from the profile's prefixes (only those that have
    real work in the chosen scope). Epics have `effort: 0` and `acceptance_criteria: []`.
 2. **Break each epic into Tasks** — `<PREFIX>-NNN`, inheriting the epic's prefix. Each Task needs:
-   a clear `description`, testable `acceptance_criteria` (non-empty), Fibonacci `effort`
-   (1, 2, 3, 5, 8, 13), and `dependencies` (other ticket IDs, or `[]`). Write every field in the
-   house style's `tone`, and size `effort` against its `effort_rubric`. When you show effort to the
-   user, translate it plainly (e.g. small / medium / large) — the number is the detail, not the headline.
+   a clear `description`, testable `acceptance_criteria` (non-empty), a size (below), and
+   `dependencies` (other ticket IDs, or `[]`). Write every field in the house style's `tone`.
+   - **Fibonacci backlog:** Fibonacci `effort` (1, 2, 3, 5, 8, 13), sized against the
+     `effort_rubric`. When you show effort to the user, translate it plainly
+     (e.g. small / medium / large) — the number is the detail, not the headline.
+   - **Hours-based backlog:** propose the `estimate` inputs and let Ticketly calculate the points —
+     never type `effort` yourself (write `null`; `ticketly recalc` fills it in). Follow
+     `hours_rubric` exactly:
+     - `hours_breakdown` — implementation + testing + self_review + handoff, each in **quarter
+       hours** (0.25 steps); `estimated_hours` is their total. Standard hours are the active work for
+       a developer competent in the stack and familiar with the project to meet the acceptance
+       criteria — exclude waiting for dependencies or review and person-specific onboarding.
+     - `difficulty_level` 1–4 (Basic ×1.00, Standard ×1.10, Complex ×1.25, Advanced ×1.40) from
+       **technical evidence**, with a short task-specific `difficulty_reason`. Size and repetition
+       affect hours, not difficulty; never raise difficulty because a task is long, and never pad
+       hours as a second complexity buffer. A routine task touching authentication isn't automatically
+       level 4.
+     - `estimate_confidence` — high (scope and approach established), medium (bounded assumptions
+       remain), low (material questions unresolved). It never changes points.
+     - `rubric_version` — the backlog's current `estimation.rubric_version`.
+     - **Unestimated:** if a task can't be estimated responsibly, set `estimate: null`, `effort:
+       null` and `needs_clarification: true`; it shows as *Unestimated* and totals are marked
+       partial. Substantial unknowns may need a bounded **investigation** task first.
+     - **Estimate the work, not the person.** Owner, speed, seniority and team size are never inputs —
+       the same task gets the same points whoever takes it.
+     - Points are `hours × multiplier`, rounded half-up to one decimal (1 hour at level 3 = 1.3).
+       When you show them, say "points" and "standard hours" separately — points are not elapsed time.
+   - **Explicit work:** ordinary testing and self-review stay inside a task's estimate. Give
+     substantial cleanup, integration, client preparation, or investigation its own task with
+     `work_kind` (`cleanup`, `integration`, `client_prep`, `investigation`).
 3. **Dependencies & build order** — wire `dependencies` so the backlog reads in a sensible build
    order. Never create a circular or dangling dependency.
 4. **Guardrail** — anything underspecified gets `needs_clarification: true`, not a guess.
 
 Write the result to `./ticketly/.data/backlog.json` in the current folder. It must conform to the
-ticket schema at `ENGINE/schema/ticket.schema.json`.
+ticket schema at `ENGINE/schema/ticket.schema.json`. Then record it:
+
+```bash
+ticketly recalc ticketly/.data/backlog.json
+```
+
+`recalc` calculates every hours-based Task's points with the one shared calculation and records each
+Task's starting estimate, owner and status as a `baseline` in its `history` (both models). Never write
+`history` or calculated `effort` by hand.
 
 ### 6. Self-check — re-read your own backlog before showing it
 
@@ -265,7 +323,9 @@ this checklist:
 3. **No obvious gaps** — a happy path usually implies setup, error/empty states, and a way to
    verify it. If the requirements clearly need a step you didn't write, add it.
 4. **Effort is sane against the rubric** — a Task with five acceptance criteria sized `1`, or a
-   one-line change sized `13`, is probably miscalibrated. Re-size against the `effort_rubric`.
+   one-line change sized `13`, is probably miscalibrated. Re-size against the `effort_rubric`. For
+   hours-based points: every breakdown includes testing, self-review and handoff; every difficulty
+   level has a task-specific reason; no hours are padded for difficulty.
 5. **Every area has real work** — no empty epic, no Task orphaned from its epic.
 6. **Anything still underspecified is flagged** `needs_clarification: true`, never quietly guessed.
 
@@ -281,7 +341,10 @@ ticketly validate ticketly/.data/backlog.json
 
 It reports **errors** (duplicate IDs, dependencies pointing at missing tickets, a Task parented
 to a non-epic, an epic sized above 0, circular dependencies, a Task with no acceptance criteria
-that isn't flagged `needs_clarification`) and **warnings** (tickets that share a title — a likely
+that isn't flagged `needs_clarification`; for estimates: points that don't match their inputs, a
+breakdown that doesn't add up, a change that was never recorded in history, a broken or
+double-counting split) and **warnings** (an Unestimated Task, additional scope split off by the same
+owner without `approved_by`, tickets that share a title — a likely
 duplicate; acceptance criteria that aren't objectively checkable — vague quality words like "works
 well" or a bare "done"). **Fix every error before continuing** — the renderer will refuse a backlog
 that has any. For a duplicate-title warning, do a real **dedupe pass**: decide whether the flagged
@@ -306,7 +369,9 @@ This re-checks integrity, then writes three files into `./ticketly/`:
 Show the user `backlog.md`, and point them at `tasks.md` as the file to hand to a coding agent.
 
 Both CSVs carry a blank **Assignee** column — Ticketly never invents owners; the user (or their
-team) fills it in later in the tracker.
+team) fills it in later in the tracker. They also carry the estimation model, the estimate inputs,
+Epic totals (separate from the Epics' internal `effort` of 0, with a partial flag), and a baseline
+column that lets an edited copy come back in (see *Editing in a spreadsheet or Notion*).
 
 When the user wants to import into **Notion**, add `--format notion` (or `--format all` for
 everything). It writes `./ticketly/backlog.notion.csv`, laid out for Notion import: the title leads
@@ -322,17 +387,97 @@ Generation is a loop, not a one-shot. After rendering, the user edits in plain E
 "merge these two", "re-order by dependency", "drop the AUTH epic". For each request:
 
 1. Apply the edit to `./ticketly/.data/backlog.json`, keeping IDs stable (a split mints new sequential
-   IDs; a merge drops one and repoints its dependents).
-2. Re-run `ticketly validate ticketly/.data/backlog.json` and fix anything it flags.
-3. Re-render and show the updated Markdown.
+   IDs; a merge drops one and repoints its dependents). Never delete or rewrite `history` or
+   `legacy_estimates`.
+2. Record it: `ticketly recalc ticketly/.data/backlog.json` — and when an existing estimate changed,
+   add `--reason "<why the scope or estimate changed>"` (ask the user if you don't know why). Owner
+   and status changes are recorded too.
+3. Re-run `ticketly validate ticketly/.data/backlog.json` and fix anything it flags.
+4. Re-render and show the updated Markdown.
 
 Don't aim for one-shot perfection — make the change the user asked for, keep the backlog valid,
 and show the result.
 
+## Ownership, progress and changes
+
+- **Owners.** `assignee` is the person who owns a Task — never invented; set only when the user says
+  who. `backlog.md` shows **Team totals**: per person, what they're assigned versus what is Done, with
+  standard hours and points in separate columns.
+- **Status.** `To Do` → `In Progress` → `In Review` → `Done`. **Done means the work was reviewed and
+  meets its acceptance criteria** — not merely "finished coding"; use `In Review` until then.
+- **Re-estimating.** When scope changes, update the estimate inputs and run `ticketly recalc ticketly/.data/backlog.json --reason
+  "..."`. The earlier estimate stays in `history`; nothing is erased.
+- **Takeovers and partial completion — separate tasks, never double points.**
+  - *Full takeover (none of the original owner's work is kept):* just change the `assignee` and run
+    `ticketly recalc`; the reassignment is recorded in history. Don't split — a split that leaves
+    the original nothing is rejected.
+  - *Part of the work done:* keep the original Task for the work its owner did, and create a new
+    Task with its own owner for the rest, with `split_from: {"ticket": "<original>", "scope":
+    "replaced", "reason": "..."}`. **Reduce the original's estimate to the work it keeps** (it must
+    keep some) and run `ticketly recalc ticketly/.data/backlog.json --reason "..."` in the same step so the history links the two.
+  - *The whole chain stays inside the original estimate.* The original plus every replaced split
+    from it — repeated splits and splits of splits included — may never total more than the
+    original was estimated at before its first split, even after later re-estimates. If the work
+    genuinely grew, ask the user who approved it and run `ticketly recalc ticketly/.data/backlog.json --reason "..."
+    --approved-by "<name>"`; never inflate a family member's estimate without that.
+  - *Genuinely new, approved scope:* `scope: "additional"` (plus `approved_by` when the same person
+    owns both). Fixing your own incomplete work is not new scope and does not add points — keep it in
+    the original Task.
+  - Split links must point at a real Task and must never loop.
+- **Changing the estimation model** is explicit and needs a reason:
+
+  ```bash
+  ticketly switch-model ticketly/.data/backlog.json --to hours --reason "<why>"
+  ```
+
+  Every Task keeps its old Fibonacci points in `legacy_estimates` (with its owner and status) and
+  starts **Unestimated** until it is re-estimated in hours; old points are never converted. Legacy
+  and hours-based totals are always reported separately. Then re-estimate the **open** Tasks (step
+  5's hours rules) and run `ticketly recalc ticketly/.data/backlog.json --reason "Re-estimated in hours-based points"`.
+
+  Tasks that were Done at the switch keep their legacy points, credited to the owner recorded in
+  `legacy_estimates` even if reassigned later; they stay out of the hours totals and partial flags.
+  **Never give them an hours estimate** — `recalc` and `import` refuse. Put new work on them in a new
+  Task.
+
+## Editing in a spreadsheet or Notion
+
+Users can change owners, status, due dates, priority, and estimate inputs (the hours breakdown,
+difficulty level and reason, confidence — or Fibonacci effort) in an exported CSV and bring them back:
+
+```bash
+ticketly import ticketly/backlog.csv --dry-run     # preview; writes nothing
+ticketly import ticketly/backlog.csv               # apply
+ticketly render ticketly/.data/backlog.json --format all --out-dir ticketly/
+```
+
+A Notion export imports the same way (`ticketly import <exported>.csv`). Tell the user:
+- Rows match by ticket ID; keep the **baseline** column (`ticketly_baseline` / `Ticketly Baseline`).
+  A CSV without it is refused — export a fresh one.
+- A changed estimate needs a **change reason** in that row's `change_reason` / `Change Reason` column.
+- To change an estimate, edit the breakdown columns, the difficulty level/reason or the confidence;
+  `estimated_hours` is computed from the breakdown. Hours must be finite quarter hours and the level a
+  whole number 1–4 (`2.0` is fine); `NaN`/`Infinity` or a fractional level abort the import.
+- Points, estimated hours and totals in the CSV are exported values; Ticketly recalculates them, and
+  edits to them (or to titles, descriptions, dependencies and other protected fields) are ignored
+  with a warning — make those changes through Refine. In a Notion export, those protected fields and
+  any properties added in Notion are not imported.
+- Invalid values, unknown or duplicate IDs, or an edit to something that also changed in Ticketly
+  since the export abort the whole import; nothing is written. Re-export and redo that edit.
+- **Notion refresh:** Notion's CSV import adds rows; it never updates existing ones. To refresh a
+  Notion database after a Ticketly change: export the database from Notion, `ticketly import` it,
+  re-render, then import the new `backlog.notion.csv` into a **new** database and keep the original
+  one (renamed or archived) as the record. Never merge it onto the existing database, or every ticket
+  appears twice, and don't tell users to delete rows as a refresh step. There is no
+  live Notion sync.
+
 ## Conventions (locked)
 
 - **IDs:** epics `EPIC-<PREFIX>`; tasks `<PREFIX>-NNN`. Prefix = epic theme; children inherit it.
-- **Effort:** Fibonacci points only (1, 2, 3, 5, 8, 13). Epics are `0`, sized by their children.
+- **Effort:** one model per backlog, chosen once — **hours-based points** (calculated by Ticketly
+  from the estimate: hours × difficulty multiplier, half-up to one decimal) or **Fibonacci points**
+  (1, 2, 3, 5, 8, 13). Epics are `0` internally; their displayed totals are the sum of their Tasks,
+  marked partial when a Task is Unestimated. Never add legacy and new points together.
 - **Schema is the source of truth.** Backlogs validate against `ENGINE/schema/ticket.schema.json`,
   profiles against `ENGINE/profile/profile.schema.json`, the house style against
   `ENGINE/house-style/house-style.schema.json`, and the archetype library against

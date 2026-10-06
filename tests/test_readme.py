@@ -27,9 +27,11 @@ def test_documents_install_and_invocation():
 
 def test_usage_commands_reference_real_things():
     # every `ticketly <word>` the README names must be a real engine module or CLI subcommand
-    subcommands = {"home", "install", "reset", "render", "validate", "profile", "archetypes"}
+    from ticketly import cli
+    subcommands = set(cli._COMMANDS) | set(cli._PASSTHROUGH)
+    assert {"home", "install", "reset", "render", "validate", "profile", "archetypes"} <= subcommands
     # `(?<![/\w])` skips the `/ticketly` slash command and prose, matching only CLI usage.
-    for word in set(re.findall(r"(?<![/\w])ticketly (\w+)", README)):
+    for word in set(re.findall(r"(?<![/\w])ticketly ([\w-]+)", README)):
         if word == "install":  # `ticketly install` is followed by an agent name, skip the agent
             continue
         is_module = (ROOT / "ticketly" / f"{word}.py").is_file()
